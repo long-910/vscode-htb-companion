@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { spawn, execFile, type ChildProcess } from 'node:child_process';
-import { access, readdir, readFile, unlink } from 'node:fs/promises';
+import { access, readdir, readFile, unlink, writeFile } from 'node:fs/promises';
 import { join, extname } from 'node:path';
 import { homedir, platform } from 'node:os';
 import { getConfig } from '../utils/config.js';
@@ -214,8 +214,14 @@ export class VpnService {
     this.setState('connecting');
     this.logger.info(`Connecting VPN: ${serverLabel} (strategy: ${this._strategy})`);
 
+    // Pre-create both files as the current user so that root-run OpenVPN can
+    // write to them while the extension (running as user) retains read access.
+    // unlink first in case a previous root-owned copy exists in the directory
+    // (the user can remove files from their own home dir regardless of file owner).
     await unlink(LOG_FILE).catch(() => undefined);
     await unlink(PID_FILE).catch(() => undefined);
+    await writeFile(LOG_FILE, '', { mode: 0o644 });
+    await writeFile(PID_FILE, '', { mode: 0o644 });
 
     if (this._strategy === 'osascript') {
       // macOS: run sudo openvpn in an integrated terminal so the user can
