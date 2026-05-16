@@ -33,7 +33,7 @@
 | 依赖项 | 说明 |
 |---|---|
 | **VS Code** ≥ 1.90 | |
-| **HTB App Token** | 在 [app.hackthebox.com/profile/settings](https://app.hackthebox.com/profile/settings) → *App Tokens* 中生成 |
+| **HTB App Token** | 在 [app.hackthebox.com/account-settings](https://app.hackthebox.com/account-settings) → *App Tokens* 中生成 |
 | **OpenVPN** | VPN 功能所需。通过系统包管理器或 [openvpn.net](https://openvpn.net/community-downloads/) 安装。**不支持** OpenVPN Connect（GUI 版）|
 | **.ovpn 文件** | 从 HTB → *Labs* → *Access* 下载 |
 
@@ -57,7 +57,7 @@ code --install-extension long-kudo.vscode-htb-companion
 HTB: Sign In
 ```
 
-扩展将自动打开 HTB 个人资料设置页面。创建 App Token 后粘贴到输入框，按 **Enter** 确认。HTB 侧边栏将显示您的个人资料和段位。
+扩展将自动打开 HTB 账户设置页面。创建 App Token 后粘贴到输入框，按 **Enter** 确认。HTB 侧边栏将显示您的个人资料和段位。
 
 ### 3. 连接 VPN
 

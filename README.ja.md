@@ -33,7 +33,7 @@
 | 依存 | 備考 |
 |---|---|
 | **VS Code** ≥ 1.90 | |
-| **HTB App Token** | [app.hackthebox.com/profile/settings](https://app.hackthebox.com/profile/settings) → *App Tokens* で生成 |
+| **HTB App Token** | [app.hackthebox.com/account-settings](https://app.hackthebox.com/account-settings) → *App Tokens* で生成 |
 | **OpenVPN** | VPN 機能に必要。OS のパッケージマネージャーまたは [openvpn.net](https://openvpn.net/community-downloads/) からインストール。OpenVPN Connect（GUI 版）は**非対応** |
 | **.ovpn ファイル** | HTB → *Labs* → *Access* からダウンロード |
 
@@ -57,7 +57,7 @@ code --install-extension long-kudo.vscode-htb-companion
 HTB: Sign In
 ```
 
-HTB のプロフィール設定ページが開きます。App Token を作成してプロンプトに貼り付け、**Enter** を押してください。HTB サイドバーにプロフィールとランクが表示されます。
+HTB のアカウント設定ページが開きます。App Token を作成してプロンプトに貼り付け、**Enter** を押してください。HTB サイドバーにプロフィールとランクが表示されます。
 
 ### 3. VPN 接続
 

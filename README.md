@@ -33,7 +33,7 @@ English | [日本語](./README.ja.md) | [简体中文](./README.zh-CN.md)
 | Dependency | Notes |
 |---|---|
 | **VS Code** ≥ 1.90 | |
-| **HTB App Token** | Generate at [app.hackthebox.com/profile/settings](https://app.hackthebox.com/profile/settings) → *App Tokens* |
+| **HTB App Token** | Generate at [app.hackthebox.com/account-settings](https://app.hackthebox.com/account-settings) → *App Tokens* |
 | **OpenVPN** | Required for VPN features. Install via your OS package manager or from [openvpn.net](https://openvpn.net/community-downloads/). OpenVPN Connect (GUI) is **not** supported. |
 | **.ovpn file** | Download from HTB → *Labs* → *Access* |
 
@@ -57,7 +57,7 @@ Open the Command Palette (`Ctrl+Shift+P`) and run:
 HTB: Sign In
 ```
 
-The extension opens your HTB Profile Settings page. Create an App Token, paste it into the prompt, and press **Enter**. Your profile and rank will appear in the HTB sidebar.
+The extension opens your HTB Account Settings page. Create an App Token, paste it into the prompt, and press **Enter**. Your profile and rank will appear in the HTB sidebar.
 
 ### 3. Connect VPN
 
