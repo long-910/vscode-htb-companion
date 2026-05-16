@@ -18,6 +18,8 @@ import { registerAuthCommands } from './commands/auth.js';
 import { registerMachineCommands } from './commands/machines.js';
 import { registerFlagCommands } from './commands/flags.js';
 import { registerEnumCommands } from './commands/enum.js';
+import { registerAiCommands } from './commands/ai.js';
+import { AiService } from './services/ai.js';
 import { createLogger } from './utils/logger.js';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
@@ -82,6 +84,17 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   registerFlagCommands(context, apiClient, statusBar, activeMachineProvider, logger);
   registerEnumCommands(context, enumProvider, logger);
+
+  const aiService = new AiService();
+  registerAiCommands(
+    context,
+    aiService,
+    enumProvider,
+    activeMachineProvider,
+    commandHistory,
+    apiClient,
+    logger,
+  );
 
   context.subscriptions.push(
     vscode.commands.registerCommand('htb.machines.loadMoreRetired', async () => {

@@ -20,6 +20,13 @@ export function getAiHintLevel(): string {
   return getConfig().get<string>('ai.hintLevel', 'nudge');
 }
 
+export function getAiContextMode(): 'minimal' | 'current-box' | 'full-history' {
+  return getConfig().get<'minimal' | 'current-box' | 'full-history'>(
+    'ai.contextMode',
+    'current-box',
+  );
+}
+
 export function isTelemetryEnabled(): boolean {
   return getConfig().get<boolean>('telemetry', false);
 }
