@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-05-16
+
+### Added
+
+- `services/htbApi.ts` — full HTB v4 API client with typed response models, error classes
+  (`HtbAuthError`, `HtbRateLimitError`, `HtbApiError`), and all Phase 1 endpoints
+- `services/auth.ts` — `AuthService` using `vscode.SecretStorage`; sign-in flow opens
+  HTB Settings URL, validates token, restores session on activation
+- `services/workspace.ts` — `WorkspaceService` scaffolds `standard` template workspace
+  (`~/.htb/<box-name>/`) with `.htb/`, `.vscode/`, `scans/`, `loot/` and template substitution
+- `services/vpn.ts` — `VpnService` managing OpenVPN subprocess; binary auto-detection for
+  Linux/macOS/Windows, elevation strategy selection (sudo/pkexec/osascript/runas/none),
+  process health-check, password masking in logs, `.ovpn` script-security warning
+- `views/statusBar.ts` — `StatusBarManager` with 4 status bar items: account, VPN,
+  active box, flag progress
+- `views/machinesTree.ts` — three VS Code `TreeDataProvider` implementations:
+  `ProfileProvider`, `ActiveMachineProvider` (with flag status + expiry children),
+  `MachinesListProvider`
+- `commands/auth.ts` — `htb.signIn`, `htb.signOut`, `htb.refresh`, VPN connect/disconnect
+- `commands/machines.ts` — `htb.spawnMachine`, `htb.terminateMachine`, `htb.resetMachine`,
+  `htb.openBoxWorkspace`, `htb.copyTargetIp`, `htb.openMachineInBrowser`
+- `commands/flags.ts` — `htb.submitFlag` with difficulty rating and flag status refresh
+- `extension.ts` — full `activate()` wiring all services, views, and session restore
+- `src/test/suite/htbApi.test.ts` — 8 unit tests for API client (fetch stubbing with sinon)
+- `src/test/suite/workspace.test.ts` — 2 integration tests for workspace scaffold in tmpdir
+- `src/test/suite/vpn.test.ts` — 2 unit tests for elevation strategy detection
+
 ## [0.0.1] - 2026-05-16
 
 ### Added
