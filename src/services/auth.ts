@@ -4,7 +4,7 @@ import type { HtbProfile } from '../types/htb.js';
 import type { Logger } from '../utils/logger.js';
 
 const TOKEN_KEY = 'htb.apiToken';
-const HTB_SETTINGS_URL = 'https://app.hackthebox.com/profile/settings';
+const HTB_SETTINGS_URL = 'https://app.hackthebox.com/account-settings';
 
 export class AuthService {
   private _profile: HtbProfile | undefined;

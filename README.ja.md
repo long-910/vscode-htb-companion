@@ -11,6 +11,23 @@
 
 ---
 
+## コンセプト
+
+HTB Companion は**攻撃ツールではなく、コンパニオン（補助）ツール**です。
+
+nmap・gobuster・ffuf などのセキュリティツールをこの拡張機能が代わりに実行することはありません。エクスプロイトの送信、自動スキャン、ターゲットマシンへの直接通信も一切行いません。
+
+この拡張機能が行うのはワークフローの整理です：
+
+- ターミナルで自分が実行したツールの**出力ファイルを読み込み**、発見事項を整理する
+- 公式 HTB API を通じて VPN 接続・マシンのスポーン／終了・フラグ提出など**HTB セッションを管理**する
+- ノート・スキャン結果・認証情報が整理された**ワークスペースを自動生成**する
+- 機密情報をマスクしたうえで**AI ヒントを取得**する（送信内容はユーザーが確認可能）
+
+ターゲットマシンへの能動的な操作はすべて**あなたのターミナル**で**あなた自身の操作**により行われます。
+
+---
+
 ## 機能一覧
 
 | 機能 | 概要 |
@@ -33,7 +50,7 @@
 | 依存 | 備考 |
 |---|---|
 | **VS Code** ≥ 1.90 | |
-| **HTB App Token** | [app.hackthebox.com/profile/settings](https://app.hackthebox.com/profile/settings) → *App Tokens* で生成 |
+| **HTB App Token** | [app.hackthebox.com/account-settings](https://app.hackthebox.com/account-settings) → *App Tokens* で生成 |
 | **OpenVPN** | VPN 機能に必要。OS のパッケージマネージャーまたは [openvpn.net](https://openvpn.net/community-downloads/) からインストール。OpenVPN Connect（GUI 版）は**非対応** |
 | **.ovpn ファイル** | HTB → *Labs* → *Access* からダウンロード |
 
@@ -57,7 +74,7 @@ code --install-extension long-kudo.vscode-htb-companion
 HTB: Sign In
 ```
 
-HTB のプロフィール設定ページが開きます。App Token を作成してプロンプトに貼り付け、**Enter** を押してください。HTB サイドバーにプロフィールとランクが表示されます。
+HTB のアカウント設定ページが開きます。App Token を作成してプロンプトに貼り付け、**Enter** を押してください。HTB サイドバーにプロフィールとランクが表示されます。
 
 ### 3. VPN 接続
 

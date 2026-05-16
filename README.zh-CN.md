@@ -11,6 +11,23 @@
 
 ---
 
+## 设计理念
+
+HTB Companion 是一款**辅助工具，而非攻击工具**。
+
+本扩展不会代替您执行 nmap、gobuster、ffuf 或任何其他安全工具，不会发送漏洞利用载荷，不会进行自动扫描，也不会直接与目标靶机通信。
+
+本扩展的作用是整理您的工作流程：
+
+- **读取**您在终端中运行工具后产生的输出文件，并对发现事项进行归类整理
+- 通过官方 HTB API **管理** HTB 会话（VPN 连接、靶机启动／终止、Flag 提交）
+- **自动创建**结构化工作区，让笔记、扫描结果和凭据保持有序
+- 在发送前对敏感信息进行脱敏处理，并提供 **AI 提示**（可在发送前预览内容）
+
+对靶机的所有主动操作均在**您的终端**中、**由您自己**完成。
+
+---
+
 ## 功能列表
 
 | 功能 | 说明 |
@@ -33,7 +50,7 @@
 | 依赖项 | 说明 |
 |---|---|
 | **VS Code** ≥ 1.90 | |
-| **HTB App Token** | 在 [app.hackthebox.com/profile/settings](https://app.hackthebox.com/profile/settings) → *App Tokens* 中生成 |
+| **HTB App Token** | 在 [app.hackthebox.com/account-settings](https://app.hackthebox.com/account-settings) → *App Tokens* 中生成 |
 | **OpenVPN** | VPN 功能所需。通过系统包管理器或 [openvpn.net](https://openvpn.net/community-downloads/) 安装。**不支持** OpenVPN Connect（GUI 版）|
 | **.ovpn 文件** | 从 HTB → *Labs* → *Access* 下载 |
 
@@ -57,7 +74,7 @@ code --install-extension long-kudo.vscode-htb-companion
 HTB: Sign In
 ```
 
-扩展将自动打开 HTB 个人资料设置页面。创建 App Token 后粘贴到输入框，按 **Enter** 确认。HTB 侧边栏将显示您的个人资料和段位。
+扩展将自动打开 HTB 账户设置页面。创建 App Token 后粘贴到输入框，按 **Enter** 确认。HTB 侧边栏将显示您的个人资料和段位。
 
 ### 3. 连接 VPN
 

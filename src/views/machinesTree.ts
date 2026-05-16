@@ -147,6 +147,10 @@ export class ActiveMachineProvider implements vscode.TreeDataProvider<ActiveMach
   private _userOwned = false;
   private _rootOwned = false;
 
+  get activeMachine(): HtbActiveMachine | null | undefined {
+    return this._machine;
+  }
+
   update(machine: HtbActiveMachine | null | undefined, userOwned = false, rootOwned = false): void {
     this._machine = machine;
     this._userOwned = userOwned;

@@ -11,6 +11,23 @@ English | [日本語](./README.ja.md) | [简体中文](./README.zh-CN.md)
 
 ---
 
+## Concept
+
+HTB Companion is a **companion tool**, not an attack tool.
+
+It does **not** execute nmap, gobuster, ffuf, or any other security tool on your behalf. It does **not** send exploit payloads, perform automated scanning, or interact with target machines directly.
+
+What it does is organize your workflow:
+
+- It **reads** output files that you produced by running tools yourself in the terminal.
+- It **manages** your HTB session (VPN, machine spawn/terminate, flag submission) via the official HTB API.
+- It **scaffolds** a structured workspace so notes, scan results, and credentials stay organized.
+- It **assists** with AI hints using context you explicitly provide — with sensitive values masked before transmission.
+
+All active interaction with a target machine happens in **your terminal**, under **your control**.
+
+---
+
 ## Features
 
 | Area | What you get |
@@ -33,7 +50,7 @@ English | [日本語](./README.ja.md) | [简体中文](./README.zh-CN.md)
 | Dependency | Notes |
 |---|---|
 | **VS Code** ≥ 1.90 | |
-| **HTB App Token** | Generate at [app.hackthebox.com/profile/settings](https://app.hackthebox.com/profile/settings) → *App Tokens* |
+| **HTB App Token** | Generate at [app.hackthebox.com/account-settings](https://app.hackthebox.com/account-settings) → *App Tokens* |
 | **OpenVPN** | Required for VPN features. Install via your OS package manager or from [openvpn.net](https://openvpn.net/community-downloads/). OpenVPN Connect (GUI) is **not** supported. |
 | **.ovpn file** | Download from HTB → *Labs* → *Access* |
 
@@ -57,7 +74,7 @@ Open the Command Palette (`Ctrl+Shift+P`) and run:
 HTB: Sign In
 ```
 
-The extension opens your HTB Profile Settings page. Create an App Token, paste it into the prompt, and press **Enter**. Your profile and rank will appear in the HTB sidebar.
+The extension opens your HTB Account Settings page. Create an App Token, paste it into the prompt, and press **Enter**. Your profile and rank will appear in the HTB sidebar.
 
 ### 3. Connect VPN
 

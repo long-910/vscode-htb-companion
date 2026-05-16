@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-17
+
+### Added
+
+- `services/ai.ts` — `AiService` wrapping VS Code Language Model API; auto-selects available
+  model (GitHub Copilot or Claude extension); `buildContextPayload` assembles token-capped
+  context (≤ 12 000 chars) from machine metadata, findings, and command history
+- Hint-level system prompts: `nudge` / `tactic` / `ttp` / `poc` — controls how explicit AI
+  responses are
+- `htb.ai.confirmBeforeSend` setting — shows a Webview review panel before transmitting context
+  to the AI model; sensitive values (flags, passwords, SSH keys) are masked in the preview
+- `commands/ai.ts` — `registerAiCommands`:
+  - `htb.ai.suggestNext` (`Ctrl+Alt+N`) — asks "what to investigate next" with full context
+  - `htb.ai.analyzeOutput` — sends selected editor text or clipboard content for analysis
+  - `htb.ai.askContext` — free-form question about the current box
+  - `htb.ai.setHintLevel` — QuickPick to change hint level without opening settings
+- AI result shown in a VS Code Webview panel beside the editor (no output channel noise)
+- `src/test/suite/ai.test.ts` — 8 unit tests covering context payload building, masking,
+  truncation, and null-machine handling
+
+### Changed
+
+- `views/machinesTree.ts` — `ActiveMachineProvider` now exposes `activeMachine` getter
+- `utils/config.ts` — added `getAiContextMode()` helper
+- `extension.ts` — wired `AiService` and `registerAiCommands`
+- `package.json` — added `htb.ai.confirmBeforeSend` setting and `htb.ai.setHintLevel` command
+
 ## [0.2.0] - 2026-05-16
 
 ### Added

@@ -2,7 +2,7 @@
   "name": "vscode-htb-companion",
   "displayName": "HTB Companion",
   "description": "Hack The Box integration for VS Code — manage machines, organize notes, track flags, and get AI-assisted hints without leaving your editor.",
-  "version": "0.0.1",
+  "version": "0.3.0",
   "publisher": "long-kudo",
   "license": "MIT",
   "engines": {
@@ -174,6 +174,11 @@
         "category": "HTB AI"
       },
       {
+        "command": "htb.ai.setHintLevel",
+        "title": "Set AI Hint Level",
+        "category": "HTB AI"
+      },
+      {
         "command": "htb.writeup.draft",
         "title": "Draft Writeup",
         "category": "HTB"
@@ -293,6 +298,11 @@
           ],
           "default": "current-box",
           "description": "How much context to send to AI."
+        },
+        "htb.ai.confirmBeforeSend": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show a review panel before sending context to the AI model."
         },
         "htb.enum.autoImportFromTerminal": {
           "type": "boolean",
