@@ -11,6 +11,23 @@ English | [日本語](./README.ja.md) | [简体中文](./README.zh-CN.md)
 
 ---
 
+## Concept
+
+HTB Companion is a **companion tool**, not an attack tool.
+
+It does **not** execute nmap, gobuster, ffuf, or any other security tool on your behalf. It does **not** send exploit payloads, perform automated scanning, or interact with target machines directly.
+
+What it does is organize your workflow:
+
+- It **reads** output files that you produced by running tools yourself in the terminal.
+- It **manages** your HTB session (VPN, machine spawn/terminate, flag submission) via the official HTB API.
+- It **scaffolds** a structured workspace so notes, scan results, and credentials stay organized.
+- It **assists** with AI hints using context you explicitly provide — with sensitive values masked before transmission.
+
+All active interaction with a target machine happens in **your terminal**, under **your control**.
+
+---
+
 ## Features
 
 | Area | What you get |
