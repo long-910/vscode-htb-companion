@@ -219,14 +219,31 @@ export class VpnService {
 
     if (this._strategy === 'osascript') {
       // macOS: run sudo openvpn in an integrated terminal so the user can
-      // enter their password. Output is tee'd to LOG_FILE so we can monitor it.
-      const vpnArgs = [bin, '--config', ovpnPath, '--writepid', PID_FILE, '--verb', '3'];
-      const quotedArgs = vpnArgs.map(shellEsc).join(' ');
-      const cmd = `sudo ${quotedArgs} 2>&1 | tee ${shellEsc(LOG_FILE)}`;
+      // enter their sudo password. Use --log so OpenVPN writes directly to
+      // LOG_FILE (avoids pipe-buffering delays). The terminal stays open so
+      // the user sees the sudo prompt and any runtime output.
+      const vpnArgs = [
+        bin,
+        '--config',
+        ovpnPath,
+        '--writepid',
+        PID_FILE,
+        '--log',
+        LOG_FILE,
+        '--verb',
+        '3',
+      ];
+      const cmd = `sudo ${vpnArgs.map(shellEsc).join(' ')}`;
 
       const terminal = vscode.window.createTerminal({ name: 'HTB VPN' });
-      terminal.show(); // focus so user sees the sudo password prompt
-      terminal.sendText(cmd);
+      terminal.show();
+
+      // Delay sending the command to give the shell time to initialise.
+      setTimeout(() => terminal.sendText(cmd), 400);
+
+      void vscode.window.showInformationMessage(
+        'HTB VPN: Enter your sudo password in the "HTB VPN" terminal.',
+      );
 
       this._session = {
         process: undefined,
@@ -235,8 +252,9 @@ export class VpnService {
         server: serverLabel,
         startedAt: new Date(),
       };
-      this.logger.info('OpenVPN started in integrated terminal; polling log file');
-      this.startLogFilePoll();
+      this.logger.info('OpenVPN started in integrated terminal (--log); polling log file');
+      // Start polling after the shell has had time to launch openvpn.
+      setTimeout(() => this.startLogFilePoll(), 500);
       return;
     }
 
