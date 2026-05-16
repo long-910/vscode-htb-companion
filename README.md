@@ -1,3 +1,5 @@
+English | [日本語](./README.ja.md)
+
 # HTB Companion
 
 [![CI](https://github.com/long-910/vscode-htb-companion/actions/workflows/ci.yml/badge.svg)](https://github.com/long-910/vscode-htb-companion/actions/workflows/ci.yml)
