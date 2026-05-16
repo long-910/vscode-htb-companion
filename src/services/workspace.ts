@@ -136,6 +136,10 @@ export class WorkspaceService {
     await writeIfAbsent(join(boxDir, 'loot', 'credentials.md'), credsMd);
   }
 
+  getBoxDir(machineName: string): string {
+    return join(expandHome(getWorkspaceRoot()), machineName);
+  }
+
   async openBoxWorkspace(boxDir: string): Promise<void> {
     const uri = vscode.Uri.file(boxDir);
     await vscode.commands.executeCommand('vscode.openFolder', uri, { forceNewWindow: false });

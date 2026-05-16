@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-16
+
+### Added
+
+- `services/parsers/nmap.ts` — `parseNmapText` (ports, OS detection, HTTP title notes) and
+  `parseNmapXml` (regex-based XML port extraction)
+- `services/parsers/gobuster.ts` — `parseGobusterOutput` auto-detecting dir/dns/vhost mode;
+  filters non-interesting HTTP status codes
+- `services/parsers/ffuf.ts` — `parseFfufJson` (full JSON output with vhost vs directory
+  detection from FUZZ value pattern) and `parseFfufText` (plain text best-effort parse)
+- `services/commandHistory.ts` — `CommandHistoryService` persisting command log entries to
+  `.htb/commands.jsonl`; `htb.terminal.captureCommand` with section tagging
+- `views/enumPanel.ts` — `EnumerationProvider` tree view with category grouping, deduplication,
+  confidence icons; `importOutputToFindings` auto-detects parser from content
+- `views/machinesTree.ts` — `RetiredMachinesProvider` with page-by-page loading,
+  `StartingPointProvider` with Tier 1/2/3 sections, `RecentBoxesProvider` (persisted to
+  `globalState`)
+- `commands/enum.ts` — `htb.enum.importNmap` (file picker → auto-detect parser),
+  `htb.enum.addFinding` (QuickPick type + InputBox value), `htb.enum.copyFinding`,
+  `htb.enum.showVisualizer` (Phase 4 placeholder)
+- `htb.machines.loadMoreRetired` command for retired machine pagination
+- `services/workspace.ts` — `getBoxDir(name)` helper method
+- `src/test/suite/parsers.test.ts` — 28 unit tests covering nmap text/XML, gobuster
+  dir/dns/vhost, ffuf JSON/text parsers
+
+### Changed
+
+- `extension.ts` — wired `EnumerationProvider`, `CommandHistoryService`, and
+  `registerEnumCommands`; added `RetiredMachinesProvider`, `StartingPointProvider`,
+  `RecentBoxesProvider` registrations; loads Starting Point Tier 1-3 and retired page 1 on
+  session restore; sets `commandHistory` workspace when active machine is present
+- `commands/machines.ts` — `registerMachineCommands` now accepts `RecentBoxesProvider`; updates
+  recent boxes and persists to `globalState` after opening a workspace
+
 ## [0.1.0] - 2026-05-16
 
 ### Added

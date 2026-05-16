@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import type { HtbApiClient } from '../services/htbApi.js';
 import type { WorkspaceService } from '../services/workspace.js';
 import type { StatusBarManager } from '../views/statusBar.js';
-import type { ActiveMachineProvider } from '../views/machinesTree.js';
+import type { ActiveMachineProvider, RecentBoxesProvider } from '../views/machinesTree.js';
 import type { AuthService } from '../services/auth.js';
 import type { Logger } from '../utils/logger.js';
 import type { HtbMachine } from '../types/htb.js';
@@ -13,6 +13,7 @@ export function registerMachineCommands(
   workspaceService: WorkspaceService,
   statusBar: StatusBarManager,
   activeMachineProvider: ActiveMachineProvider,
+  recentBoxesProvider: RecentBoxesProvider,
   auth: AuthService,
   logger: Logger,
 ): void {
@@ -110,6 +111,8 @@ export function registerMachineCommands(
       try {
         const boxDir = await workspaceService.scaffoldBoxWorkspace(targetMachine, ip);
         await workspaceService.openBoxWorkspace(boxDir);
+        recentBoxesProvider.addBox(targetMachine.name);
+        void context.globalState.update('htb.recentBoxes', [...recentBoxesProvider.boxes]);
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         void vscode.window.showErrorMessage(`Failed to open workspace: ${msg}`);
