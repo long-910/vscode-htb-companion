@@ -1,0 +1,23 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "HTB: nmap initial",
+      "type": "shell",
+      "command": "nmap -sCV -p- -T4 ${env:HTB_TARGET} -oA scans/nmap/initial",
+      "problemMatcher": []
+    },
+    {
+      "label": "HTB: gobuster dir",
+      "type": "shell",
+      "command": "gobuster dir -u http://${env:HTB_TARGET} -w /usr/share/wordlists/dirb/common.txt -o scans/web/gobuster.txt",
+      "problemMatcher": []
+    },
+    {
+      "label": "HTB: ffuf vhost",
+      "type": "shell",
+      "command": "ffuf -w /usr/share/wordlists/SecLists/Discovery/DNS/subdomains-top1million-5000.txt -u http://${env:HTB_TARGET} -H 'Host: FUZZ.${env:HTB_TARGET}' -o scans/web/ffuf-vhost.json -of json",
+      "problemMatcher": []
+    }
+  ]
+}

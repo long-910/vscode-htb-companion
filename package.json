@@ -1,0 +1,362 @@
+{
+  "name": "vscode-htb-companion",
+  "displayName": "HTB Companion",
+  "description": "Hack The Box integration for VS Code — manage machines, organize notes, track flags, and get AI-assisted hints without leaving your editor.",
+  "version": "0.0.1",
+  "publisher": "long-kudo",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Other",
+    "Education"
+  ],
+  "keywords": [
+    "hackthebox",
+    "htb",
+    "ctf",
+    "pentesting",
+    "security",
+    "cybersecurity"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/long-910/vscode-htb-companion"
+  },
+  "bugs": {
+    "url": "https://github.com/long-910/vscode-htb-companion/issues"
+  },
+  "homepage": "https://github.com/long-910/vscode-htb-companion#readme",
+  "sponsor": {
+    "url": "https://github.com/sponsors/long-910"
+  },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "Terminal output capture is disabled in untrusted workspaces."
+    }
+  },
+  "main": "./dist/extension.js",
+  "l10n": "./l10n",
+  "activationEvents": [
+    "onView:htbCompanion.machines",
+    "onCommand:htb.signIn"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "htbCompanion",
+          "title": "HTB Companion",
+          "icon": "media/htb-companion.svg"
+        }
+      ]
+    },
+    "views": {
+      "htbCompanion": [
+        {
+          "id": "htbCompanion.profile",
+          "name": "Profile"
+        },
+        {
+          "id": "htbCompanion.activeMachine",
+          "name": "Active Machine"
+        },
+        {
+          "id": "htbCompanion.machines",
+          "name": "Machines"
+        },
+        {
+          "id": "htbCompanion.recentBoxes",
+          "name": "Recent Boxes"
+        },
+        {
+          "id": "htbCompanion.enumeration",
+          "name": "Enumeration"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "htb.signIn",
+        "title": "Sign In",
+        "category": "HTB"
+      },
+      {
+        "command": "htb.signOut",
+        "title": "Sign Out",
+        "category": "HTB"
+      },
+      {
+        "command": "htb.refresh",
+        "title": "Refresh",
+        "category": "HTB"
+      },
+      {
+        "command": "htb.openBoxWorkspace",
+        "title": "Open Box Workspace",
+        "category": "HTB"
+      },
+      {
+        "command": "htb.spawnMachine",
+        "title": "Spawn Machine",
+        "category": "HTB"
+      },
+      {
+        "command": "htb.terminateMachine",
+        "title": "Terminate Machine",
+        "category": "HTB"
+      },
+      {
+        "command": "htb.resetMachine",
+        "title": "Reset Machine",
+        "category": "HTB"
+      },
+      {
+        "command": "htb.submitFlag",
+        "title": "Submit Flag…",
+        "category": "HTB"
+      },
+      {
+        "command": "htb.copyTargetIp",
+        "title": "Copy Target IP",
+        "category": "HTB"
+      },
+      {
+        "command": "htb.openMachineInBrowser",
+        "title": "Open in Browser",
+        "category": "HTB"
+      },
+      {
+        "command": "htb.vpn.connect",
+        "title": "Connect VPN",
+        "category": "HTB"
+      },
+      {
+        "command": "htb.vpn.disconnect",
+        "title": "Disconnect VPN",
+        "category": "HTB"
+      },
+      {
+        "command": "htb.vpn.selectServer",
+        "title": "Select VPN Server",
+        "category": "HTB"
+      },
+      {
+        "command": "htb.enum.addFinding",
+        "title": "Add Finding",
+        "category": "HTB"
+      },
+      {
+        "command": "htb.enum.importNmap",
+        "title": "Import Nmap XML/Output",
+        "category": "HTB"
+      },
+      {
+        "command": "htb.enum.showVisualizer",
+        "title": "Show Enumeration Visualizer",
+        "category": "HTB"
+      },
+      {
+        "command": "htb.ai.suggestNext",
+        "title": "Suggest Next Step",
+        "category": "HTB AI"
+      },
+      {
+        "command": "htb.ai.analyzeOutput",
+        "title": "Analyze Output",
+        "category": "HTB AI"
+      },
+      {
+        "command": "htb.ai.askContext",
+        "title": "Ask About Current Box",
+        "category": "HTB AI"
+      },
+      {
+        "command": "htb.writeup.draft",
+        "title": "Draft Writeup",
+        "category": "HTB"
+      },
+      {
+        "command": "htb.writeup.exportMarkdown",
+        "title": "Export Writeup (Markdown)",
+        "category": "HTB"
+      },
+      {
+        "command": "htb.terminal.captureCommand",
+        "title": "Capture Command for Writeup",
+        "category": "HTB"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "htb.submitFlag",
+        "key": "ctrl+alt+f"
+      },
+      {
+        "command": "htb.copyTargetIp",
+        "key": "ctrl+alt+i"
+      },
+      {
+        "command": "htb.ai.suggestNext",
+        "key": "ctrl+alt+n"
+      },
+      {
+        "command": "htb.terminal.captureCommand",
+        "key": "ctrl+alt+c"
+      }
+    ],
+    "configuration": {
+      "title": "HTB Companion",
+      "properties": {
+        "htb.workspaceRoot": {
+          "type": "string",
+          "default": "~/htb",
+          "description": "Root directory where Box workspaces are created."
+        },
+        "htb.workspaceTemplate": {
+          "type": "string",
+          "enum": [
+            "minimal",
+            "standard",
+            "full"
+          ],
+          "default": "standard",
+          "description": "Workspace scaffold template. minimal=notes only, standard=notes+scans+loot, full=adds exploits/web/screenshots."
+        },
+        "htb.vpn.openvpnPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to openvpn binary. Auto-detected from PATH if empty."
+        },
+        "htb.vpn.configDirectory": {
+          "type": "string",
+          "default": "~/htb/vpn",
+          "description": "Directory containing .ovpn files downloaded from HTB."
+        },
+        "htb.vpn.defaultConfig": {
+          "type": "string",
+          "default": "",
+          "description": "Path to a default .ovpn file used by 'Connect VPN' without prompting."
+        },
+        "htb.vpn.elevationStrategy": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "pkexec",
+            "sudo",
+            "none",
+            "windows-uac"
+          ],
+          "default": "auto",
+          "description": "How to gain privileges for OpenVPN. auto=detect best option per OS."
+        },
+        "htb.vpn.autoDisconnectOnTerminate": {
+          "type": "boolean",
+          "default": false,
+          "description": "Disconnect VPN automatically when terminating a machine."
+        },
+        "htb.vpn.healthCheckIntervalSec": {
+          "type": "number",
+          "default": 10,
+          "description": "How often to check VPN tunnel status (seconds)."
+        },
+        "htb.ai.provider": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "copilot",
+            "claude",
+            "off"
+          ],
+          "default": "auto",
+          "description": "AI provider for hints. 'auto' uses any model available via VSCode Language Model API."
+        },
+        "htb.ai.hintLevel": {
+          "type": "string",
+          "enum": [
+            "nudge",
+            "tactic",
+            "ttp",
+            "poc"
+          ],
+          "default": "nudge",
+          "description": "How explicit AI hints should be."
+        },
+        "htb.ai.contextMode": {
+          "type": "string",
+          "enum": [
+            "minimal",
+            "current-box",
+            "full-history"
+          ],
+          "default": "current-box",
+          "description": "How much context to send to AI."
+        },
+        "htb.enum.autoImportFromTerminal": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically parse nmap/gobuster output from terminal."
+        },
+        "htb.writeup.captureScreenshots": {
+          "type": "boolean",
+          "default": true,
+          "description": "Capture screenshots when 'Capture Command' is triggered."
+        },
+        "htb.writeup.passwordProtect": {
+          "type": "boolean",
+          "default": false,
+          "description": "Encrypt writeup output (matches HTB Retired Machine policy)."
+        },
+        "htb.telemetry": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable anonymous telemetry. Off by default."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.js",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "pretest": "npm run compile-tests && npm run lint",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "test": "vscode-test",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.0",
+    "@types/node": "^20.0.0",
+    "@types/sinon": "^17.0.0",
+    "@types/vscode": "^1.95.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.0",
+    "@vscode/vsce": "^3.0.0",
+    "esbuild": "^0.24.0",
+    "eslint": "^9.0.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.0.0",
+    "mocha": "^10.0.0",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^3.0.0",
+    "sinon": "^19.0.0",
+    "typescript": "^5.0.0"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  }
+}
