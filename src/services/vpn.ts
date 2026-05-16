@@ -289,7 +289,7 @@ export class VpnService {
 
   private startLogFilePoll(): void {
     const startTime = Date.now();
-    const TIMEOUT_MS = 90_000;
+    const TIMEOUT_MS = 180_000; // 3 minutes — HTB can be slow under load
     let lastSize = 0;
 
     const poll = async () => {
@@ -300,7 +300,7 @@ export class VpnService {
       if (Date.now() - startTime > TIMEOUT_MS) {
         this.setState('error');
         void vscode.window.showErrorMessage(
-          'VPN connection timed out (90 s). Check the HTB VPN terminal for errors.',
+          'VPN connection timed out (3 min). Check the HTB VPN terminal for errors.',
         );
         return;
       }
@@ -311,8 +311,8 @@ export class VpnService {
           this.handleOutput(content.slice(lastSize));
           lastSize = content.length;
         }
-      } catch {
-        /* log not yet created */
+      } catch (e) {
+        this.logger.debug(`[vpn poll] log read error: ${(e as Error).message}`);
       }
 
       if (this._state === 'connecting') {
@@ -345,11 +345,15 @@ export class VpnService {
         `HTB VPN connected: ${this._session?.server ?? 'VPN'}`,
       );
       this.startHealthCheck();
-    } else if (/AUTH_FAILED|TLS Error|Cannot open TUN/i.test(raw)) {
+    } else if (/AUTH_FAILED/i.test(raw)) {
+      // AUTH_FAILED is always fatal — stop immediately.
       this.stopLogFilePoll();
       this.setState('error');
-      void vscode.window.showErrorMessage(`VPN error: ${masked.trim().slice(0, 160)}`);
+      void vscode.window.showErrorMessage(
+        'VPN authentication failed. Check your .ovpn credentials.',
+      );
     }
+    // TLS Error / Cannot open TUN can be transient (OpenVPN retries); keep polling.
   }
 
   private handleExit(code: number | null): void {
