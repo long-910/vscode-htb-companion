@@ -298,6 +298,21 @@ export class VpnService {
       }
 
       if (Date.now() - startTime > TIMEOUT_MS) {
+        // Final read: OpenVPN may have connected just as the timer fired.
+        try {
+          const final = await readFile(LOG_FILE, 'utf-8');
+          if (/Initialization Sequence Completed/i.test(final)) {
+            this.stopLogFilePoll();
+            this.setState('connected');
+            void vscode.window.showInformationMessage(
+              `HTB VPN connected: ${this._session?.server ?? 'VPN'}`,
+            );
+            this.startHealthCheck();
+            return;
+          }
+        } catch {
+          /* ignore */
+        }
         this.setState('error');
         void vscode.window.showErrorMessage(
           'VPN connection timed out (3 min). Check the HTB VPN terminal for errors.',
