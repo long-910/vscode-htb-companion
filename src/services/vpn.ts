@@ -10,7 +10,8 @@ export type VpnState = 'disconnected' | 'connecting' | 'connected' | 'error';
 export type ElevationStrategy = 'none' | 'sudo' | 'pkexec' | 'osascript' | 'runas';
 
 interface VpnSession {
-  process: ChildProcess;
+  process: ChildProcess | undefined;
+  terminal: vscode.Terminal | undefined;
   ovpnPath: string;
   server: string;
   startedAt: Date;
@@ -83,13 +84,13 @@ export function detectElevationStrategy(): ElevationStrategy {
   return uid === 0 ? 'none' : 'sudo';
 }
 
-// Shell-escape a single argument for use inside single quotes.
+// Shell-escape a single argument (single-quote style).
 function shellEsc(s: string): string {
   return `'${s.replace(/'/g, `'"'"'`)}'`;
 }
 
 function buildCommand(
-  strategy: ElevationStrategy,
+  strategy: Exclude<ElevationStrategy, 'osascript'>,
   openvpnBin: string,
   ovpnPath: string,
 ): [string, string[]] {
@@ -102,16 +103,6 @@ function buildCommand(
       return ['sudo', [openvpnBin, ...vpnArgs]];
     case 'pkexec':
       return ['pkexec', [openvpnBin, ...vpnArgs]];
-
-    case 'osascript': {
-      // Run OpenVPN in the background and redirect output to LOG_FILE.
-      // Use single-quote shell escaping to avoid conflicts with the outer
-      // AppleScript double-quoted string.
-      const vpnCmd = [openvpnBin, ...vpnArgs].map(shellEsc).join(' ');
-      const fullCmd = `${vpnCmd} > ${shellEsc(LOG_FILE)} 2>&1 &`;
-      return ['osascript', ['-e', `do shell script "${fullCmd}" with administrator privileges`]];
-    }
-
     case 'runas':
       return [openvpnBin, vpnArgs];
   }
@@ -218,57 +209,59 @@ export class VpnService {
     }
 
     this._strategy = detectElevationStrategy();
-    const [cmd, args] = buildCommand(this._strategy, bin, ovpnPath);
     const serverLabel = ovpnPath.split(/[/\\]/).pop()?.replace('.ovpn', '') ?? 'VPN';
 
     this.setState('connecting');
     this.logger.info(`Connecting VPN: ${serverLabel} (strategy: ${this._strategy})`);
 
-    // Remove stale log/pid files before starting
     await unlink(LOG_FILE).catch(() => undefined);
     await unlink(PID_FILE).catch(() => undefined);
 
-    const proc = spawn(cmd, args, {
-      stdio: this._strategy === 'osascript' ? 'ignore' : ['ignore', 'pipe', 'pipe'],
-    });
-    this._session = { process: proc, ovpnPath, server: serverLabel, startedAt: new Date() };
-
     if (this._strategy === 'osascript') {
-      // osascript exits quickly after backgrounding OpenVPN.
-      // Monitor LOG_FILE for output instead.
-      proc.on('exit', (code) => {
-        if (code !== 0) {
-          this.setState('error');
-          this._session = undefined;
-          void vscode.window.showErrorMessage(
-            code === 1
-              ? 'VPN: authentication cancelled or permission denied.'
-              : `VPN launch failed (osascript exit code ${code}).`,
-          );
-          return;
-        }
-        this.logger.info(`OpenVPN running in background; monitoring ${LOG_FILE}`);
-        this.startLogFilePoll();
-      });
-      proc.on('error', (e) => {
-        this.setState('error');
-        this._session = undefined;
-        void vscode.window.showErrorMessage(`VPN launch error: ${e.message}`);
-      });
-    } else {
-      proc.stdout?.on('data', (chunk: Buffer) => this.handleOutput(chunk.toString()));
-      proc.stderr?.on('data', (chunk: Buffer) => this.handleOutput(chunk.toString()));
-      proc.on('exit', (code) => this.handleExit(code));
-      proc.on('error', (e) => {
-        this.setState('error');
-        void vscode.window.showErrorMessage(`VPN launch error: ${e.message}`);
-      });
+      // macOS: run sudo openvpn in an integrated terminal so the user can
+      // enter their password. Output is tee'd to LOG_FILE so we can monitor it.
+      const vpnArgs = [bin, '--config', ovpnPath, '--writepid', PID_FILE, '--verb', '3'];
+      const quotedArgs = vpnArgs.map(shellEsc).join(' ');
+      const cmd = `sudo ${quotedArgs} 2>&1 | tee ${shellEsc(LOG_FILE)}`;
+
+      const terminal = vscode.window.createTerminal({ name: 'HTB VPN' });
+      terminal.show(); // focus so user sees the sudo password prompt
+      terminal.sendText(cmd);
+
+      this._session = {
+        process: undefined,
+        terminal,
+        ovpnPath,
+        server: serverLabel,
+        startedAt: new Date(),
+      };
+      this.logger.info('OpenVPN started in integrated terminal; polling log file');
+      this.startLogFilePoll();
+      return;
     }
+
+    const [cmd, args] = buildCommand(this._strategy, bin, ovpnPath);
+    const proc = spawn(cmd, args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    this._session = {
+      process: proc,
+      terminal: undefined,
+      ovpnPath,
+      server: serverLabel,
+      startedAt: new Date(),
+    };
+
+    proc.stdout?.on('data', (chunk: Buffer) => this.handleOutput(chunk.toString()));
+    proc.stderr?.on('data', (chunk: Buffer) => this.handleOutput(chunk.toString()));
+    proc.on('exit', (code) => this.handleExit(code));
+    proc.on('error', (e) => {
+      this.setState('error');
+      void vscode.window.showErrorMessage(`VPN launch error: ${e.message}`);
+    });
 
     this.logger.info(`OpenVPN spawned (PID ${proc.pid ?? '?'})`);
   }
 
-  // ── Log file polling (macOS osascript path) ───────────────────────────────
+  // ── Log file polling (macOS terminal path) ────────────────────────────────
 
   private startLogFilePoll(): void {
     const startTime = Date.now();
@@ -283,7 +276,7 @@ export class VpnService {
       if (Date.now() - startTime > TIMEOUT_MS) {
         this.setState('error');
         void vscode.window.showErrorMessage(
-          'VPN connection timed out (90 s). Check the OpenVPN output.',
+          'VPN connection timed out (90 s). Check the HTB VPN terminal for errors.',
         );
         return;
       }
@@ -355,20 +348,24 @@ export class VpnService {
     this.stopLogFilePoll();
 
     if (this._strategy === 'osascript') {
-      await this.disconnectOsascript();
+      // Close the terminal (sends HUP to the shell / sudo), then kill via PID file.
+      this._session.terminal?.dispose();
+      await this.killViaPidFile();
     } else {
-      const { process: proc } = this._session;
-      proc.kill('SIGTERM');
-      await new Promise<void>((resolve) => {
-        const t = setTimeout(() => {
-          proc.kill('SIGKILL');
-          resolve();
-        }, 10_000);
-        proc.once('exit', () => {
-          clearTimeout(t);
-          resolve();
+      const proc = this._session.process;
+      if (proc) {
+        proc.kill('SIGTERM');
+        await new Promise<void>((resolve) => {
+          const t = setTimeout(() => {
+            proc.kill('SIGKILL');
+            resolve();
+          }, 10_000);
+          proc.once('exit', () => {
+            clearTimeout(t);
+            resolve();
+          });
         });
-      });
+      }
     }
 
     this._session = undefined;
@@ -376,12 +373,12 @@ export class VpnService {
     this.logger.info('VPN disconnected');
   }
 
-  private async disconnectOsascript(): Promise<void> {
+  private async killViaPidFile(): Promise<void> {
     try {
       const pidStr = await readFile(PID_FILE, 'utf-8');
       const pid = parseInt(pidStr.trim(), 10);
       if (!isNaN(pid) && pid > 0) {
-        // OpenVPN runs as root on macOS — use osascript to kill it
+        // OpenVPN runs as root — use osascript to kill it with admin privileges.
         await new Promise<void>((resolve) => {
           const killer = spawn('osascript', [
             '-e',
@@ -412,8 +409,7 @@ export class VpnService {
   }
 
   private async runHealthCheck(): Promise<void> {
-    // For osascript, the session.process is already gone; use the PID file.
-    let pid: number | undefined = this._session?.process.pid;
+    let pid: number | undefined = this._session?.process?.pid;
 
     if (this._strategy === 'osascript') {
       try {
@@ -433,7 +429,11 @@ export class VpnService {
 
     try {
       process.kill(pid, 0);
-    } catch {
+    } catch (e) {
+      // EPERM means process exists but is owned by root — tunnel is still alive.
+      if ((e as NodeJS.ErrnoException).code === 'EPERM') {
+        return;
+      }
       this.logger.warn('VPN health check failed: OpenVPN process gone');
       this.stopHealthCheck();
       this._session = undefined;
