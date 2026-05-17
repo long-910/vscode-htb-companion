@@ -2,7 +2,7 @@
   "name": "vscode-htb-companion",
   "displayName": "HTB Companion",
   "description": "Hack The Box integration for VS Code — manage machines, organize notes, track flags, and get AI-assisted hints without leaving your editor.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "publisher": "long-kudo",
   "license": "MIT",
   "engines": {
@@ -192,6 +192,11 @@
       {
         "command": "htb.terminal.captureCommand",
         "title": "Capture Command for Writeup",
+        "category": "HTB"
+      },
+      {
+        "command": "htb.pwnbox.configSsh",
+        "title": "Configure Pwnbox SSH",
         "category": "HTB"
       }
     ],

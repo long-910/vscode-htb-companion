@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-05-17
+
+### Added
+
+- Phase 5: Enumeration Visualizer, Screenshot Capture, Pwnbox SSH
+- `htb.enum.showVisualizer` — Webview panel showing an interactive Enumeration Map: ports/services table, directories, subdomains, users/creds, CVEs, and generated Mermaid graph syntax (copy button included)
+- Screenshot auto-capture on `htb.terminal.captureCommand` — macOS (`screencapture -i`), Linux (`scrot -s` / `gnome-screenshot -a`), Windows (PowerShell); saved under `screenshots/` in the box workspace; respects `htb.writeup.captureScreenshots` setting
+- `htb.pwnbox.configSsh` — fetches Pwnbox SSH info from HTB API, writes `~/.ssh/config` Host block (`htb-pwnbox`), offers one-click Remote-SSH connect or copy SSH command
+
 ## [0.4.0] - 2026-05-17
 
 ### Added

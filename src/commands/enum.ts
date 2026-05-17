@@ -2,12 +2,15 @@ import * as vscode from 'vscode';
 import { readFile } from 'node:fs/promises';
 import type { EnumFinding } from '../types/findings.js';
 import { EnumerationProvider, importOutputToFindings } from '../views/enumPanel.js';
+import { showVisualizerPanel } from '../views/visualizerPanel.js';
 import type { Logger } from '../utils/logger.js';
 
 export function registerEnumCommands(
   context: vscode.ExtensionContext,
   enumProvider: EnumerationProvider,
   logger: Logger,
+  getTargetIp?: () => string | undefined,
+  getBoxName?: () => string | undefined,
 ): void {
   context.subscriptions.push(
     vscode.commands.registerCommand('htb.enum.importNmap', async () => {
@@ -86,9 +89,8 @@ export function registerEnumCommands(
     }),
 
     vscode.commands.registerCommand('htb.enum.showVisualizer', () => {
-      void vscode.window.showInformationMessage(
-        'Enumeration Visualizer will be available in Phase 4.',
-      );
+      showVisualizerPanel(context, enumProvider.findings, getTargetIp?.(), getBoxName?.());
+      logger.info('Enumeration Visualizer opened');
     }),
   );
 }

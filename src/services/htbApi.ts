@@ -3,6 +3,7 @@ import type {
   HtbProfile,
   HtbActiveMachine,
   HtbFlagSubmitResult,
+  HtbPwnbox,
 } from '../types/htb.js';
 import type { Logger } from '../utils/logger.js';
 
@@ -22,6 +23,8 @@ export const ENDPOINTS = {
   activeMachine: '/machine/active',
   machineOwn: '/machine/own',
   userActivity: (id: number) => `/profile/activity/${id}`,
+  pwnboxStatus: '/pwnbox/status',
+  pwnboxAssign: '/pwnbox/assign',
 } as const;
 
 export class HtbAuthError extends Error {
@@ -155,5 +158,10 @@ export class HtbApiClient {
   async getStartingPoint(tier: 1 | 2 | 3): Promise<HtbMachine[]> {
     const data = await this.request<MachineListResponse>(ENDPOINTS.startingPoint(tier));
     return data.data ?? [];
+  }
+
+  async getPwnboxStatus(): Promise<HtbPwnbox> {
+    const data = await this.request<{ data: HtbPwnbox }>(ENDPOINTS.pwnboxStatus);
+    return data.data;
   }
 }
