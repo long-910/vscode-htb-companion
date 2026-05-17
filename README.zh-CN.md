@@ -72,25 +72,26 @@ code --install-extension long-kudo.vscode-htb-companion
 
 ### 2. 登录
 
-打开命令面板（`Ctrl+Shift+P`）并运行：
-
-```
-HTB: Sign In
-```
-
-扩展将打开您的 HTB 账户设置页面。创建 App Token，将其粘贴到提示框中并按 **Enter**。您的个人资料和段位将显示在 HTB 侧边栏中。
+1. 打开命令面板（`Ctrl+Shift+P`）并运行 **HTB: Sign In**。
+2. 浏览器打开 HTB 账户设置页面 → 在 **App Tokens** 中创建新 Token。
+3. 复制 Token，粘贴到 VS Code 提示框中并按 **Enter**。
+4. HTB 侧边栏显示您的个人资料和段位。
 
 ### 3. 连接 VPN
 
-1. 将 `.ovpn` 文件放置在 `~/htb/vpn/`（或在设置中修改 `htb.vpn.configDirectory`）。
-2. 从命令面板运行 **HTB: Connect VPN**。
-3. 状态栏显示 `$(radio-tower) VPN ✓` 即表示隧道已建立。
+1. 从 HTB 的 **Labs** → **Access** 下载 `.ovpn` 文件。
+2. 将文件放置在 `~/htb/vpn/`（默认）或任意目录。如使用其他目录，请在 VS Code 设置中修改 `htb.vpn.configDirectory`。
+3. 从命令面板运行 **HTB: Connect VPN**，选择 `.ovpn` 文件。
+4. 状态栏显示 `VPN ✓` 即表示隧道已建立。若连接失败，请参阅 [VPN 使用说明](#vpn-使用说明)。
+
+> **提示：** 将 `htb.vpn.defaultConfig` 设置为 `.ovpn` 文件路径，可跳过每次的文件选择提示。
 
 ### 4. 启动靶机并打开工作区
 
-1. 从 HTB 侧边栏的 **Machines** 树中选择靶机。
-2. 右键 → **Spawn Machine**（或运行 `HTB: Spawn Machine`）。
-3. 启动后，右键 → **Open Box Workspace**。
+1. 展开 HTB 侧边栏的 **Machines** 树，浏览 Active、Retired 或 Starting Point。
+2. 右键靶机 → **Spawn Machine**（或选中后运行 `HTB: Spawn Machine`）。
+3. 等待 IP 地址出现在树中（通常需要 30～60 秒）。
+4. 右键靶机 → **Open Box Workspace**。
 
 系统将在 `~/htb/<box-name>/` 创建目录并作为 VS Code 工作区打开：
 
@@ -101,7 +102,7 @@ HTB: Sign In
 │   ├── commands.jsonl    ← 捕获的命令日志
 │   └── findings.json     ← 结构化发现事项
 ├── .vscode/
-│   ├── settings.json     ← 预设 HTB_TARGET 环境变量
+│   ├── settings.json     ← 预设 HTB_TARGET 环境变量为靶机 IP
 │   └── tasks.json        ← nmap / gobuster 任务快捷方式
 ├── notes.md              ← 预填侦察模板
 ├── writeup.md            ← Writeup 草稿模板
@@ -114,17 +115,46 @@ HTB: Sign In
     └── credentials.md
 ```
 
+**工作区模板** — 通过 `htb.workspaceTemplate` 选择：
+
+| 模板 | 内容 |
+|---|---|
+| `minimal` | 仅 `notes.md` |
+| `standard` *（默认）* | notes + `scans/` + `loot/` + VS Code 任务 |
+| `full` | standard + `exploits/` + `web/` + `screenshots/` |
+
+---
+
+## 典型会话流程
+
+各功能在实际 HTB 会话中的协作方式：
+
+```
+登录 → 连接 VPN → 启动靶机 → 打开工作区
+    ↓
+在终端运行 nmap/gobuster/ffuf → 导入扫描结果 → 枚举面板显示
+    ↓
+捕获命令（Ctrl+Alt+C） → 记录到命令历史 → 自动保存截图
+    ↓
+打开枚举可视化器 → MITRE ATT&CK 映射 → 复制 Mermaid 图
+    ↓
+AI：建议下一步（Ctrl+Alt+N） → 分析输出 → 循环迭代
+    ↓
+提交 Flag（Ctrl+Alt+F） → 草拟 Writeup → 导出
+```
+
 ---
 
 ## 核心工作流
 
 ### 导入扫描结果
 
-运行 nmap、gobuster 或 ffuf 后，将输出文件直接导入**枚举**面板：
+在终端运行 nmap、gobuster 或 ffuf 后，将输出文件导入**枚举**面板：
 
-1. 运行 **HTB: Import Scan Output**。
+1. 从命令面板运行 **HTB: Import Scan Output**。
 2. 选择输出文件（`.txt`、`.xml`、`.json`、`.gnmap`）。
 3. 扩展自动识别工具类型，并将发现事项按类别分组显示。
+4. 若需手动添加：右键枚举面板 → **Add Finding**。
 
 **支持的格式：**
 
@@ -136,33 +166,94 @@ HTB: Sign In
 
 ### 枚举可视化器
 
-运行 **HTB: Show Enumeration Visualizer** 打开 Webview 面板：
+导入发现事项后，打开可视化器一览全貌：
 
-- **端口与服务**表格（协议、服务名称、版本）
-- 目录、子域名、用户、CVE、笔记分组显示
-- **MITRE ATT&CK 映射** — 根据发现事项自动推断战术与技术（建议手动核实）
-- **Mermaid 语法** — 可粘贴到 Mermaid Live Editor 或 Obsidian 渲染图形
+1. 从命令面板运行 **HTB: Show Enumeration Visualizer**。
+2. Webview 面板显示：
+   - **端口与服务**表格（协议、服务名称、版本）
+   - 目录、子域名、用户、CVE、笔记分组显示
+   - **MITRE ATT&CK 映射** — 根据发现事项自动推断战术与技术（使用前建议手动核实）
+   - **Mermaid 语法** — 点击 **Copy** 粘贴到 Mermaid Live Editor 或 Obsidian 渲染图形
+
+### 捕获命令用于 Writeup
+
+每个值得记录的命令，只需一键即可保存：
+
+1. 在终端运行命令。
+2. 按 `Ctrl+Alt+C`（或运行 **HTB: Capture Command for Writeup**）。
+3. 在提示中输入：
+   - **命令**（若自动检测到上一条命令则确认后按 Enter）
+   - **分段标签**：从 `recon`、`enumeration`、`foothold`、`privesc`、`loot` 中选择
+4. 在 macOS 和 Linux 上，会弹出交互式截图提示 — 拖拽选择要捕获的区域。截图保存到靶机工作区的 `screenshots/` 目录。可通过 `htb.writeup.captureScreenshots: false` 禁用。
+5. 条目追加到 `.htb/commands.jsonl`，在草拟 Writeup 时自动使用。
 
 ### AI 助手
 
 安装 GitHub Copilot 或 Claude 扩展后：
 
-| 命令 | 快捷键 | 说明 |
+1. 从命令面板运行 AI 命令，或使用以下快捷键：
+
+| 命令 | 快捷键 | 使用时机 |
 |---|---|---|
-| Suggest Next Step | `Ctrl+Alt+N` | 结合完整靶机上下文询问"下一步应该调查什么" |
-| Analyze Output | — | 将选中文本或剪贴板内容发送给 AI 分析 |
-| Ask About Current Box | — | 关于当前靶机的自由提问 |
-| Set AI Hint Level | — | 切换提示详细程度（nudge / tactic / ttp / poc） |
+| **Suggest Next Step** | `Ctrl+Alt+N` | 遇到瓶颈，不知道下一步该调查什么 |
+| **Analyze Output** | — | 在编辑器中选中终端输出后运行 |
+| **Ask About Current Box** | — | 需要就当前靶机自由提问 |
+| **Set AI Hint Level** | — | 需要调整提示详细程度 |
+
+2. 扩展从靶机元数据、发现事项、命令历史中组装最多 12,000 字符的上下文并发送给 AI 模型。
+
+**提示级别** — 控制 AI 回复的详细程度：
+
+| 级别 | 内容 |
+|---|---|
+| `nudge` | 方向性轻提示（如"你检查过 X 吗？"） |
+| `tactic` | 应采用的通用方法或战术 |
+| `ttp` | 具体的工具、技术与程序（TTP） |
+| `poc` | 包含命令或 PoC 步骤的近完整指导 |
+
+> **隐私：** 发送前自动屏蔽 Flag、密码和 SSH 密钥。启用 `htb.ai.confirmBeforeSend` 可在发送前于预览面板中查看完整上下文。
 
 ### 导出 Writeup
 
-1. 运行 **HTB: Draft Writeup** — 从捕获的命令、发现事项、靶机元数据和笔记自动生成 `writeup.md`。
-2. 审阅并编辑 `writeup.md`。
-3. 运行 **HTB: Export Writeup (Markdown)** 通过保存对话框导出至任意路径。
+1. 运行 **HTB: Draft Writeup** — `writeup.md` 自动填入：
+   - 靶机元数据（名称、操作系统、难度、IP）
+   - 按阶段分组的捕获命令（recon → foothold → privesc → loot）
+   - 导入的发现事项摘要
+   - `notes.md` 内容
+2. 在编辑器中审阅并编辑 `writeup.md`。
+3. 运行 **HTB: Export Writeup (Markdown)**，通过保存对话框将副本导出至任意路径。
 
 ### 提交 Flag
 
-按 `Ctrl+Alt+F`，输入 Flag 并评定难度。Active Machine 树将更新显示已获取的 Flag。
+1. 按 `Ctrl+Alt+F`（或运行 **HTB: Submit Flag**）。
+2. 输入 Flag 字符串（User 或 Root）。
+3. 在提示中评定难度。
+4. Active Machine 树更新显示已获取的 Flag。
+
+### Sherlocks（DFIR）
+
+**Sherlocks** 面板让您无需离开 VS Code 即可浏览 HTB 的 DFIR 挑战：
+
+1. 展开 HTB 侧边栏中的 **Sherlocks** 面板。登录后自动加载。
+2. 挑战按类别分组（Forensics、Malware Analysis、Threat Hunting 等），显示难度图标和解题状态。
+3. 点击挑战（或右键 → **Open Sherlock**）选择操作：
+   - **Open in Browser** — 在 hackthebox.com 打开挑战页面
+   - **Download Files** — 下载案例取证文件
+   - **Copy Name** — 复制挑战名称到剪贴板
+4. 若需刷新列表：点击 Sherlocks 面板标题栏的刷新图标，或运行 **HTB: Refresh Sherlocks**。
+
+### Pwnbox SSH
+
+若您使用 HTB 的云端 Pwnbox 而非本地虚拟机，可一键配置 SSH 访问：
+
+1. 在 HTB 网站启动 Pwnbox 会话。
+2. 从命令面板运行 **HTB: Configure Pwnbox SSH**。
+3. 扩展从 HTB API 获取 Pwnbox 的 IP、用户名和端口，并在 `~/.ssh/config` 中写入 `Host htb-pwnbox` 配置块。
+4. 通知弹出两个选项：
+   - **Connect via Remote-SSH** — 直接通过 Remote-SSH 扩展连接到 `htb-pwnbox`
+   - **Copy SSH Command** — 复制 `ssh htb-pwnbox` 到剪贴板
+
+> 直接连接选项需要安装 [Remote - SSH](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh) 扩展。
 
 ---
 
@@ -171,7 +262,7 @@ HTB: Sign In
 | 快捷键 | 操作 |
 |---|---|
 | `Ctrl+Alt+F` | 提交 Flag |
-| `Ctrl+Alt+I` | 复制目标 IP |
+| `Ctrl+Alt+I` | 复制目标 IP 到剪贴板 |
 | `Ctrl+Alt+C` | 捕获命令用于 Writeup |
 | `Ctrl+Alt+N` | AI：建议下一步 |
 
@@ -253,6 +344,8 @@ HTB: Sign In
 ---
 
 ## 贡献
+
+欢迎贡献！请参阅 [CONTRIBUTING.md](CONTRIBUTING.md) 了解指南。
 
 ```sh
 git clone https://github.com/long-910/vscode-htb-companion.git
