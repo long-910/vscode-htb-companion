@@ -6,3 +6,4 @@ out/
 .env*
 PROMPTS.md
 SPEC.md
+.DS_Store

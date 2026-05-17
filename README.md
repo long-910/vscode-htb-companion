@@ -7,7 +7,7 @@ English | [日本語](./README.ja.md) | [简体中文](./README.zh-CN.md)
 [![Open VSX](https://img.shields.io/badge/Open%20VSX-Registry-purple)](https://open-vsx.org/extension/long-kudo/vscode-htb-companion)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Hack The Box integration for VS Code** — manage machines, track findings, capture commands, and scaffold box workspaces without leaving your editor.
+**Hack The Box integration for VS Code** — manage machines, track findings, get AI hints, and export writeups without leaving your editor.
 
 ---
 
@@ -37,11 +37,14 @@ All active interaction with a target machine happens in **your terminal**, under
 | **VPN** | Launch and monitor OpenVPN from within VS Code; auto-detects binary and elevation strategy |
 | **Workspace Scaffold** | One command creates a structured box directory with pre-filled `notes.md`, scan folders, VS Code tasks, and `HTB_TARGET` env var |
 | **Enumeration Panel** | Import nmap / gobuster / ffuf output → auto-parsed findings grouped by category (ports, directories, subdomains, users, CVEs, notes) |
-| **Command History** | Capture terminal commands with section tags (recon / foothold / privesc / loot); persisted to `.htb/commands.jsonl` |
+| **Enumeration Visualizer** | Webview map of all findings with auto-generated Mermaid graph syntax and MITRE ATT&CK tactic mapping |
+| **Command History** | Capture terminal commands with section tags (recon / foothold / privesc / loot); persisted to `.htb/commands.jsonl`; optional screenshot auto-capture |
+| **AI Assistant** | Suggest next step, analyze output, ask context questions — powered by VS Code Language Model API (GitHub Copilot or Claude extension); configurable hint levels |
+| **Writeup Export** | Draft `writeup.md` populated from captured commands, findings, box metadata, and notes; export to any path via save dialog |
+| **Sherlocks (DFIR)** | Browse HTB Sherlocks challenges grouped by category with difficulty icons and solved status |
+| **Pwnbox SSH** | Fetch Pwnbox SSH info from HTB API and auto-configure `~/.ssh/config` for one-click Remote-SSH connect |
 | **Recent Boxes** | Sidebar list of recently opened workspaces with one-click re-open |
 | **Status Bar** | Live VPN status, active machine name + IP, flag progress |
-
-> **Roadmap**: AI hints (Phase 3) and writeup export (Phase 4) are coming in future releases.
 
 ---
 
@@ -49,10 +52,11 @@ All active interaction with a target machine happens in **your terminal**, under
 
 | Dependency | Notes |
 |---|---|
-| **VS Code** ≥ 1.90 | |
+| **VS Code** ≥ 1.95 | |
 | **HTB App Token** | Generate at [app.hackthebox.com/account-settings](https://app.hackthebox.com/account-settings) → *App Tokens* |
 | **OpenVPN** | Required for VPN features. Install via your OS package manager or from [openvpn.net](https://openvpn.net/community-downloads/). OpenVPN Connect (GUI) is **not** supported. |
 | **.ovpn file** | Download from HTB → *Labs* → *Access* |
+| **AI extension** *(optional)* | [GitHub Copilot](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot) or [Claude for VS Code](https://marketplace.visualstudio.com/items?itemName=Anthropic.claude-code) for AI hint features |
 
 ---
 
@@ -105,6 +109,7 @@ A directory is created at `~/htb/<box-name>/` with the structure below, and VS C
 │   ├── nmap/
 │   ├── web/
 │   └── smb/
+├── screenshots/          ← auto-saved screenshots (Capture Command)
 └── loot/
     └── credentials.md
 ```
@@ -131,17 +136,49 @@ After running nmap, gobuster, or ffuf, import the output directly into the **Enu
 
 You can also add findings manually: right-click the Enumeration panel → **Add Finding**.
 
+### Enumeration Visualizer
+
+After importing findings, run **HTB: Show Enumeration Visualizer** to open a Webview panel that shows:
+
+- **Ports & Services** table with protocol, service name, and version
+- **Directories, Subdomains, Users, CVEs, Notes** grouped by type
+- **MITRE ATT&CK Mapping** — tactics and techniques inferred from your findings (verify manually)
+- **Mermaid Syntax** — copy-pasteable graph definition for Mermaid Live Editor or Obsidian
+
 ### Capturing Commands for Your Writeup
 
-Press `Ctrl+Alt+C` (or run **HTB: Capture Command for Writeup**) to log any command with a section tag. The entry is appended to `.htb/commands.jsonl` and can be included in your writeup later.
+Press `Ctrl+Alt+C` (or run **HTB: Capture Command for Writeup**) to log any command with a section tag. On macOS and Linux, an interactive screenshot is offered automatically (drag to select region). The entry is appended to `.htb/commands.jsonl`.
+
+### AI Assistant
+
+With GitHub Copilot or the Claude extension installed:
+
+| Command | Shortcut | Description |
+|---|---|---|
+| Suggest Next Step | `Ctrl+Alt+N` | Ask "what should I investigate next?" with full box context |
+| Analyze Output | — | Send selected text or clipboard content for analysis |
+| Ask About Current Box | — | Free-form question about the active machine |
+| Set AI Hint Level | — | Toggle between `nudge` / `tactic` / `ttp` / `poc` detail levels |
+
+Sensitive values (flags, passwords, SSH keys) are automatically masked before any context is sent. Enable `htb.ai.confirmBeforeSend` to review the full payload in a Webview before sending.
+
+### Exporting Your Writeup
+
+1. Run **HTB: Draft Writeup** — populates `writeup.md` with your captured commands grouped by phase, imported findings, box metadata, and notes.
+2. Review and edit `writeup.md`.
+3. Run **HTB: Export Writeup (Markdown)** to save to any path via a save dialog.
+
+### Sherlocks (DFIR)
+
+The **Sherlocks** panel in the sidebar lists all HTB Sherlocks challenges grouped by category (Forensics, Malware Analysis, Threat Hunting, etc.). Click a challenge to open it in your browser or download the case files.
 
 ### Submitting Flags
 
 Press `Ctrl+Alt+F` (or run **HTB: Submit Flag**), enter the flag, and rate the difficulty. The Active Machine tree updates to show which flags are owned.
 
-### Copying the Target IP
+### Pwnbox SSH
 
-Press `Ctrl+Alt+I` to copy the active machine's IP to your clipboard.
+Run **HTB: Configure Pwnbox SSH** to automatically fetch your Pwnbox connection details and write a `Host htb-pwnbox` block to `~/.ssh/config`. Then connect with one click via the Remote-SSH extension.
 
 ---
 
@@ -152,7 +189,7 @@ Press `Ctrl+Alt+I` to copy the active machine's IP to your clipboard.
 | `Ctrl+Alt+F` | Submit Flag |
 | `Ctrl+Alt+I` | Copy Target IP |
 | `Ctrl+Alt+C` | Capture Command for Writeup |
-| `Ctrl+Alt+N` | Suggest Next Step *(Phase 3, coming soon)* |
+| `Ctrl+Alt+N` | AI: Suggest Next Step |
 
 ---
 
@@ -175,7 +212,16 @@ Press `Ctrl+Alt+I` to copy the active machine's IP to your clipboard.
 | `HTB: Select VPN Server` | Choose a different `.ovpn` file |
 | `HTB: Import Scan Output` | Parse nmap / gobuster / ffuf file → Enumeration panel |
 | `HTB: Add Finding` | Manually add a finding to the Enumeration panel |
-| `HTB: Capture Command for Writeup` | Log a command with a section tag |
+| `HTB: Show Enumeration Visualizer` | Open Webview with findings map and MITRE ATT&CK table |
+| `HTB: Capture Command for Writeup` | Log a command with section tag (+ optional screenshot) |
+| `HTB AI: Suggest Next Step` | AI-powered next step suggestion (`Ctrl+Alt+N`) |
+| `HTB AI: Analyze Output` | Send selected text / clipboard to AI for analysis |
+| `HTB AI: Ask About Current Box` | Free-form AI question about the active box |
+| `HTB AI: Set AI Hint Level` | Toggle hint verbosity (nudge / tactic / ttp / poc) |
+| `HTB: Draft Writeup` | Populate `writeup.md` from commands, findings, and notes |
+| `HTB: Export Writeup (Markdown)` | Save writeup to a chosen path via save dialog |
+| `HTB: Configure Pwnbox SSH` | Write `~/.ssh/config` entry for Pwnbox and connect |
+| `HTB: Refresh Sherlocks` | Reload Sherlocks challenge list from HTB API |
 
 ---
 
@@ -184,24 +230,30 @@ Press `Ctrl+Alt+I` to copy the active machine's IP to your clipboard.
 | Setting | Default | Description |
 |---|---|---|
 | `htb.workspaceRoot` | `~/htb` | Root directory where box workspaces are created |
-| `htb.workspaceTemplate` | `standard` | Scaffold template: `minimal` (notes only), `standard` (notes + scans + loot), `full` (adds exploits + screenshots) |
-| `htb.vpn.openvpnPath` | *(auto)* | Path to `openvpn` binary. Auto-detected from PATH if empty |
+| `htb.workspaceTemplate` | `standard` | Scaffold template: `minimal`, `standard`, `full` |
+| `htb.vpn.openvpnPath` | *(auto)* | Path to `openvpn` binary; auto-detected from PATH if empty |
 | `htb.vpn.configDirectory` | `~/htb/vpn` | Directory containing `.ovpn` files |
 | `htb.vpn.defaultConfig` | *(none)* | Default `.ovpn` file used by Connect VPN without a prompt |
-| `htb.vpn.elevationStrategy` | `auto` | Privilege escalation method: `auto`, `sudo`, `pkexec`, `none`, `windows-uac` |
-| `htb.vpn.autoDisconnectOnTerminate` | `false` | Disconnect VPN automatically when terminating a machine |
-| `htb.vpn.healthCheckIntervalSec` | `10` | How often to check VPN tunnel health (seconds) |
-| `htb.enum.autoImportFromTerminal` | `true` | Automatically parse scan output detected in the terminal |
+| `htb.vpn.elevationStrategy` | `auto` | Privilege escalation: `auto`, `sudo`, `pkexec`, `none`, `windows-uac` |
+| `htb.vpn.autoDisconnectOnTerminate` | `false` | Disconnect VPN when terminating a machine |
+| `htb.vpn.healthCheckIntervalSec` | `10` | VPN health check interval (seconds) |
+| `htb.ai.provider` | `auto` | AI provider: `auto`, `copilot`, `claude`, `off` |
+| `htb.ai.hintLevel` | `nudge` | Hint verbosity: `nudge`, `tactic`, `ttp`, `poc` |
+| `htb.ai.contextMode` | `current-box` | Context sent to AI: `minimal`, `current-box`, `full-history` |
+| `htb.ai.confirmBeforeSend` | `false` | Show context review panel before sending to AI |
+| `htb.enum.autoImportFromTerminal` | `true` | Auto-parse scan output detected in terminal |
+| `htb.writeup.captureScreenshots` | `true` | Auto-capture screenshot on Capture Command |
+| `htb.writeup.passwordProtect` | `false` | Encrypt writeup output (for HTB Retired Machine policy) |
 | `htb.telemetry` | `false` | Anonymous telemetry (off by default) |
 
 ---
 
 ## VPN Notes
 
-- **Linux**: elevation via `sudo` or `pkexec` (auto-detected). Run without elevation if already root.
-- **macOS**: elevation via `osascript` (GUI password prompt).
-- **Windows**: elevation via `runas` (UAC prompt). Requires the [OpenVPN Community](https://openvpn.net/community-downloads/) installer, not OpenVPN Connect.
-- `.ovpn` files with `script-security 2` or higher will show a warning — this is expected for HTB config files.
+- **Linux**: elevation via `sudo` or `pkexec` (auto-detected).
+- **macOS**: elevation via `osascript` (GUI password dialog); 180 s connect timeout.
+- **Windows**: elevation via `runas` (UAC prompt). Requires [OpenVPN Community](https://openvpn.net/community-downloads/), not OpenVPN Connect.
+- `.ovpn` files with `script-security 2` or higher will show a warning — expected for HTB config files.
 
 ---
 
@@ -209,6 +261,7 @@ Press `Ctrl+Alt+I` to copy the active machine's IP to your clipboard.
 
 - Your HTB App Token is stored in **VS Code's Secret Storage** (OS keychain) — never in settings or plaintext files.
 - Passwords and flags are masked in all logs and output panels.
+- AI context is masked for flags, passwords, and SSH keys before transmission.
 - Telemetry is **off by default**.
 
 See [SECURITY.md](SECURITY.md) for the vulnerability disclosure policy.
