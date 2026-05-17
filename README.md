@@ -72,27 +72,28 @@ code --install-extension long-kudo.vscode-htb-companion
 
 ### 2. Sign In
 
-Open the Command Palette (`Ctrl+Shift+P`) and run:
-
-```
-HTB: Sign In
-```
-
-The extension opens your HTB Account Settings page. Create an App Token, paste it into the prompt, and press **Enter**. Your profile and rank will appear in the HTB sidebar.
+1. Open the Command Palette (`Ctrl+Shift+P`) and run **HTB: Sign In**.
+2. Your browser opens the HTB Account Settings page — go to **App Tokens** and create a new token.
+3. Copy the token, paste it into the VS Code prompt, and press **Enter**.
+4. Your profile avatar and rank appear in the HTB sidebar.
 
 ### 3. Connect VPN
 
-1. Place your `.ovpn` file in `~/htb/vpn/` (or set `htb.vpn.configDirectory` in settings).
-2. Run **HTB: Connect VPN** from the Command Palette.
-3. The status bar shows `$(radio-tower) VPN ✓` when the tunnel is up.
+1. Download your `.ovpn` file from HTB → **Labs** → **Access**.
+2. Place it in `~/htb/vpn/` (default) or any directory — then set `htb.vpn.configDirectory` in VS Code Settings to point there.
+3. Open the Command Palette and run **HTB: Connect VPN**. Select the `.ovpn` file when prompted.
+4. The status bar shows `VPN ✓` when the tunnel is up. If the connection fails, see [VPN Notes](#vpn-notes).
+
+> **Tip:** Set `htb.vpn.defaultConfig` to your `.ovpn` path to skip the file prompt every time.
 
 ### 4. Spawn a Machine and Open its Workspace
 
-1. Pick a machine from the **Machines** tree in the HTB sidebar.
-2. Right-click → **Spawn Machine** (or run `HTB: Spawn Machine`).
-3. Once spawned, right-click the machine → **Open Box Workspace**.
+1. In the HTB sidebar, expand the **Machines** tree and browse Active, Retired, or Starting Point.
+2. Right-click a machine → **Spawn Machine** (or select it and run `HTB: Spawn Machine`).
+3. Wait for the IP address to appear in the tree (usually 30–60 seconds).
+4. Right-click the machine → **Open Box Workspace**.
 
-A directory is created at `~/htb/<box-name>/` with the structure below, and VS Code opens it as a workspace.
+A workspace directory is created at `~/htb/<box-name>/` and opened in VS Code:
 
 ```
 ~/htb/<box-name>/
@@ -101,7 +102,7 @@ A directory is created at `~/htb/<box-name>/` with the structure below, and VS C
 │   ├── commands.jsonl    ← captured command log
 │   └── findings.json     ← structured findings
 ├── .vscode/
-│   ├── settings.json     ← HTB_TARGET env var pre-set
+│   ├── settings.json     ← HTB_TARGET env var pre-set to the machine IP
 │   └── tasks.json        ← nmap / gobuster task shortcuts
 ├── notes.md              ← pre-filled recon template
 ├── writeup.md            ← writeup draft template
@@ -114,17 +115,46 @@ A directory is created at `~/htb/<box-name>/` with the structure below, and VS C
     └── credentials.md
 ```
 
+**Workspace templates** — choose via `htb.workspaceTemplate`:
+
+| Template | Contents |
+|---|---|
+| `minimal` | `notes.md` only |
+| `standard` *(default)* | notes + `scans/` + `loot/` + VS Code tasks |
+| `full` | standard + `exploits/` + `web/` + `screenshots/` |
+
+---
+
+## Typical Session Flow
+
+Here is how the features fit together in a real HTB session:
+
+```
+Sign In → Connect VPN → Spawn Machine → Open Box Workspace
+    ↓
+Run nmap/gobuster/ffuf in terminal → Import Scan Output → Enumeration Panel
+    ↓
+Capture Commands (Ctrl+Alt+C) → Review in Command History → Screenshot saved
+    ↓
+Show Enumeration Visualizer → MITRE ATT&CK Mapping → Copy Mermaid graph
+    ↓
+AI: Suggest Next Step (Ctrl+Alt+N) → Analyze Output → iterate
+    ↓
+Submit Flag (Ctrl+Alt+F) → Draft Writeup → Export Writeup
+```
+
 ---
 
 ## Core Workflows
 
 ### Importing Scan Results
 
-After running nmap, gobuster, or ffuf, import the output directly into the **Enumeration** panel:
+After running nmap, gobuster, or ffuf in your terminal, import the output into the **Enumeration** panel:
 
-1. Run **HTB: Import Scan Output** (`Ctrl+Shift+P` → `HTB: Import Scan Output`).
+1. Run **HTB: Import Scan Output** from the Command Palette.
 2. Select the output file (`.txt`, `.xml`, `.json`, `.gnmap`).
 3. The extension auto-detects the tool and populates the Enumeration tree with grouped findings.
+4. To add a finding by hand: right-click the Enumeration panel → **Add Finding**.
 
 **Supported formats:**
 
@@ -134,51 +164,96 @@ After running nmap, gobuster, or ffuf, import the output directly into the **Enu
 | gobuster | `dir`, `dns`, and `vhost` text output |
 | ffuf | JSON (`-of json`) and plain text |
 
-You can also add findings manually: right-click the Enumeration panel → **Add Finding**.
-
 ### Enumeration Visualizer
 
-After importing findings, run **HTB: Show Enumeration Visualizer** to open a Webview panel that shows:
+After importing findings, open the visualizer to see everything in one place:
 
-- **Ports & Services** table with protocol, service name, and version
-- **Directories, Subdomains, Users, CVEs, Notes** grouped by type
-- **MITRE ATT&CK Mapping** — tactics and techniques inferred from your findings (verify manually)
-- **Mermaid Syntax** — copy-pasteable graph definition for Mermaid Live Editor or Obsidian
+1. Run **HTB: Show Enumeration Visualizer** from the Command Palette.
+2. The Webview panel shows:
+   - **Ports & Services** table — protocol, service name, version
+   - **Directories, Subdomains, Users, CVEs, Notes** grouped by type
+   - **MITRE ATT&CK Mapping** — tactics and techniques inferred from your findings (verify manually before using)
+   - **Mermaid Syntax** — click **Copy** to paste the graph into Mermaid Live Editor or Obsidian
 
 ### Capturing Commands for Your Writeup
 
-Press `Ctrl+Alt+C` (or run **HTB: Capture Command for Writeup**) to log any command with a section tag. On macOS and Linux, an interactive screenshot is offered automatically (drag to select region). The entry is appended to `.htb/commands.jsonl`.
+Every command worth remembering can be logged with one keystroke:
+
+1. Run a command in your terminal.
+2. Press `Ctrl+Alt+C` (or run **HTB: Capture Command for Writeup**).
+3. A prompt asks you to:
+   - **Enter the command** (or confirm the last-run command if auto-detected).
+   - **Select a section tag**: `recon`, `enumeration`, `foothold`, `privesc`, or `loot`.
+4. On macOS and Linux, an interactive screenshot prompt appears — drag to select the region you want to capture. The screenshot is saved to `screenshots/` in the box workspace. Disable this with `htb.writeup.captureScreenshots: false`.
+5. The entry is appended to `.htb/commands.jsonl` and used when drafting your writeup.
 
 ### AI Assistant
 
 With GitHub Copilot or the Claude extension installed:
 
-| Command | Shortcut | Description |
-|---|---|---|
-| Suggest Next Step | `Ctrl+Alt+N` | Ask "what should I investigate next?" with full box context |
-| Analyze Output | — | Send selected text or clipboard content for analysis |
-| Ask About Current Box | — | Free-form question about the active machine |
-| Set AI Hint Level | — | Toggle between `nudge` / `tactic` / `ttp` / `poc` detail levels |
+1. Run any AI command from the Command Palette or use the shortcuts below:
 
-Sensitive values (flags, passwords, SSH keys) are automatically masked before any context is sent. Enable `htb.ai.confirmBeforeSend` to review the full payload in a Webview before sending.
+| Command | Shortcut | When to use |
+|---|---|---|
+| **Suggest Next Step** | `Ctrl+Alt+N` | Stuck and not sure what to investigate next |
+| **Analyze Output** | — | Select terminal output in the editor, then run this command |
+| **Ask About Current Box** | — | Free-form question about the active machine |
+| **Set AI Hint Level** | — | Change how explicit hints should be |
+
+2. The extension assembles up to 12,000 characters of context (machine metadata, findings, command history) and sends it to the AI model.
+
+**Hint levels** — control how explicit the AI response is:
+
+| Level | What you get |
+|---|---|
+| `nudge` | A gentle directional hint ("have you checked X?") |
+| `tactic` | The general approach or tactic to apply |
+| `ttp` | Specific TTPs (tools, techniques, procedures) to use |
+| `poc` | Near-complete guidance with commands or PoC steps |
+
+> **Privacy:** Flags, passwords, and SSH keys are automatically masked before any context is sent. Enable `htb.ai.confirmBeforeSend` to review the full payload in a preview panel before it leaves VS Code.
 
 ### Exporting Your Writeup
 
-1. Run **HTB: Draft Writeup** — populates `writeup.md` with your captured commands grouped by phase, imported findings, box metadata, and notes.
-2. Review and edit `writeup.md`.
-3. Run **HTB: Export Writeup (Markdown)** to save to any path via a save dialog.
-
-### Sherlocks (DFIR)
-
-The **Sherlocks** panel in the sidebar lists all HTB Sherlocks challenges grouped by category (Forensics, Malware Analysis, Threat Hunting, etc.). Click a challenge to open it in your browser or download the case files.
+1. Run **HTB: Draft Writeup** — `writeup.md` is populated with:
+   - Box metadata (name, OS, difficulty, IP)
+   - Captured commands grouped by phase (recon → foothold → privesc → loot)
+   - Imported findings summary
+   - Contents of `notes.md`
+2. Review and edit `writeup.md` in the editor.
+3. Run **HTB: Export Writeup (Markdown)** to save a copy to any path via a save dialog.
 
 ### Submitting Flags
 
-Press `Ctrl+Alt+F` (or run **HTB: Submit Flag**), enter the flag, and rate the difficulty. The Active Machine tree updates to show which flags are owned.
+1. Press `Ctrl+Alt+F` (or run **HTB: Submit Flag**).
+2. Enter the flag string (user or root).
+3. Rate the difficulty when prompted.
+4. The Active Machine tree updates to show which flags are owned.
+
+### Sherlocks (DFIR)
+
+The **Sherlocks** panel lets you browse HTB's DFIR challenges without leaving VS Code:
+
+1. In the HTB sidebar, expand the **Sherlocks** panel. Challenges load automatically after sign-in.
+2. Challenges are grouped by category (Forensics, Malware Analysis, Threat Hunting, etc.) with difficulty icons and solved/unsolved status.
+3. Click a challenge (or right-click → **Open Sherlock**) to choose:
+   - **Open in Browser** — opens the challenge page on hackthebox.com
+   - **Download Files** — downloads the case artefact files
+   - **Copy Name** — copies the challenge name to clipboard
+4. To reload the list, click the refresh icon in the Sherlocks panel header or run **HTB: Refresh Sherlocks**.
 
 ### Pwnbox SSH
 
-Run **HTB: Configure Pwnbox SSH** to automatically fetch your Pwnbox connection details and write a `Host htb-pwnbox` block to `~/.ssh/config`. Then connect with one click via the Remote-SSH extension.
+If you use HTB's cloud Pwnbox instead of a local VM, configure one-click SSH access:
+
+1. Start a Pwnbox session from the HTB website.
+2. Run **HTB: Configure Pwnbox SSH** from the Command Palette.
+3. The extension fetches your Pwnbox IP, username, and port from the HTB API and writes a `Host htb-pwnbox` block to `~/.ssh/config`.
+4. A notification appears with two options:
+   - **Connect via Remote-SSH** — opens the Remote-SSH extension directly to `htb-pwnbox`
+   - **Copy SSH Command** — copies `ssh htb-pwnbox` to clipboard
+
+> Requires the [Remote - SSH](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-ssh) VS Code extension for the direct-connect option.
 
 ---
 
@@ -187,7 +262,7 @@ Run **HTB: Configure Pwnbox SSH** to automatically fetch your Pwnbox connection 
 | Shortcut | Action |
 |---|---|
 | `Ctrl+Alt+F` | Submit Flag |
-| `Ctrl+Alt+I` | Copy Target IP |
+| `Ctrl+Alt+I` | Copy Target IP to clipboard |
 | `Ctrl+Alt+C` | Capture Command for Writeup |
 | `Ctrl+Alt+N` | AI: Suggest Next Step |
 
