@@ -37,11 +37,22 @@ export class CommandHistoryService {
     }
   }
 
-  async capture(command: string, cwd: string, output?: string, exitCode?: number): Promise<void> {
+  get currentBoxDir(): string | undefined {
+    return this._jsonlPath ? dirname(dirname(this._jsonlPath)) : undefined;
+  }
+
+  async capture(
+    command: string,
+    cwd: string,
+    output?: string,
+    exitCode?: number,
+    section?: string,
+  ): Promise<void> {
     const entry: CommandLogEntry = {
       timestamp: new Date().toISOString(),
       command: maskSensitive(command),
       cwd,
+      section,
       exitCode,
       output: output ? maskSensitive(output.slice(0, MAX_OUTPUT_BYTES)) : undefined,
     };
@@ -103,7 +114,7 @@ export class CommandHistoryService {
         );
 
         const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? '';
-        await this.capture(command, cwd, undefined, undefined);
+        await this.capture(command, cwd, undefined, undefined, section?.label);
 
         void vscode.window.showInformationMessage(
           `Captured: ${command.slice(0, 60)}${command.length > 60 ? '…' : ''} [${section?.label ?? 'other'}]`,

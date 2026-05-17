@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-05-17
+
+### Added
+
+- Phase 4: Writeup Export
+- `htb.writeup.draft` — populate `writeup.md` from captured commands (grouped by section tag), enumeration findings, box metadata, and notes; opens the file in editor
+- `htb.writeup.exportMarkdown` — same as draft but saves to a user-chosen path via save dialog
+- `CommandLogEntry.section` field — section tag (recon / enumeration / foothold / privesc / loot) is now persisted in `.htb/commands.jsonl`
+
+### Fixed
+
+- macOS VPN: pre-create log/pid files as user-owned so root-run OpenVPN can write while the extension retains read access
+- macOS VPN: reverted to osascript GUI password dialog (dropped terminal approach)
+- macOS VPN: 180 s poll timeout; TLS Error no longer stops polling prematurely
+- macOS VPN: final log check at timeout boundary to catch late completions
+- Extension icon set to `images/icon.png`
+
 ## [0.3.0] - 2026-05-17
 
 ### Added

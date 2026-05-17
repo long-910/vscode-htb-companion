@@ -11,6 +11,7 @@ export interface CommandLogEntry {
   timestamp: string;
   command: string;
   cwd: string;
+  section?: string;
   exitCode?: number;
   output?: string;
 }
