@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-05-17
+
+### Added
+
+- Phase 6: Sherlocks DFIR mode, MITRE ATT&CK mapping, CI re-enable
+- `htbCompanion.sherlocks` TreeView — lists HTB Sherlocks challenges grouped by category with difficulty icons and solved status; loads automatically on sign-in
+- `htb.sherlocks.refresh` — manual refresh command with toolbar button
+- `htb.sherlocks.open` — QuickPick to open in browser, download files, or copy name
+- MITRE ATT&CK Mapping section in Enumeration Visualizer — auto-infers applicable tactics/techniques from imported findings (ports, credentials, CVEs, directories, users)
+- `HtbSherlock` type + `listSherlocks()` / `getSherlock()` in `HtbApiClient`
+
 ## [0.5.0] - 2026-05-17
 
 ### Added

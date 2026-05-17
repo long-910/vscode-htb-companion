@@ -53,3 +53,16 @@ export interface HtbPwnbox {
   status: 'running' | 'stopped' | 'unknown';
   location?: string;
 }
+
+export interface HtbSherlock {
+  id: number;
+  name: string;
+  difficulty: 'Very Easy' | 'Easy' | 'Medium' | 'Hard';
+  category: string;
+  isSolved: boolean;
+  points: number;
+  description?: string;
+  scenario?: string;
+  filesUrl?: string;
+  releaseAt?: string;
+}

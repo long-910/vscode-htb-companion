@@ -4,6 +4,7 @@ import type {
   HtbActiveMachine,
   HtbFlagSubmitResult,
   HtbPwnbox,
+  HtbSherlock,
 } from '../types/htb.js';
 import type { Logger } from '../utils/logger.js';
 
@@ -25,6 +26,8 @@ export const ENDPOINTS = {
   userActivity: (id: number) => `/profile/activity/${id}`,
   pwnboxStatus: '/pwnbox/status',
   pwnboxAssign: '/pwnbox/assign',
+  sherlocksList: '/sherlocks',
+  sherlockById: (id: number) => `/sherlocks/${id}`,
 } as const;
 
 export class HtbAuthError extends Error {
@@ -162,6 +165,16 @@ export class HtbApiClient {
 
   async getPwnboxStatus(): Promise<HtbPwnbox> {
     const data = await this.request<{ data: HtbPwnbox }>(ENDPOINTS.pwnboxStatus);
+    return data.data;
+  }
+
+  async listSherlocks(): Promise<HtbSherlock[]> {
+    const data = await this.request<{ data: HtbSherlock[] }>(ENDPOINTS.sherlocksList);
+    return data.data ?? [];
+  }
+
+  async getSherlock(id: number): Promise<HtbSherlock> {
+    const data = await this.request<{ data: HtbSherlock }>(ENDPOINTS.sherlockById(id));
     return data.data;
   }
 }

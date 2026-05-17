@@ -2,7 +2,7 @@
   "name": "vscode-htb-companion",
   "displayName": "HTB Companion",
   "description": "Hack The Box integration for VS Code — manage machines, organize notes, track flags, and get AI-assisted hints without leaving your editor.",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "publisher": "long-kudo",
   "license": "MIT",
   "engines": {
@@ -75,6 +75,10 @@
         {
           "id": "htbCompanion.enumeration",
           "name": "Enumeration"
+        },
+        {
+          "id": "htbCompanion.sherlocks",
+          "name": "Sherlocks"
         }
       ]
     },
@@ -198,8 +202,33 @@
         "command": "htb.pwnbox.configSsh",
         "title": "Configure Pwnbox SSH",
         "category": "HTB"
+      },
+      {
+        "command": "htb.sherlocks.refresh",
+        "title": "Refresh Sherlocks",
+        "category": "HTB",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "htb.sherlocks.open",
+        "title": "Open Sherlock",
+        "category": "HTB"
+      },
+      {
+        "command": "htb.sherlocks.downloadFiles",
+        "title": "Download Sherlock Files",
+        "category": "HTB"
       }
     ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "htb.sherlocks.refresh",
+          "when": "view == htbCompanion.sherlocks",
+          "group": "navigation"
+        }
+      ]
+    },
     "keybindings": [
       {
         "command": "htb.submitFlag",

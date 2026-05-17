@@ -21,6 +21,8 @@ import { registerEnumCommands } from './commands/enum.js';
 import { registerAiCommands } from './commands/ai.js';
 import { registerWriteupCommands } from './commands/writeup.js';
 import { registerPwnboxCommands } from './commands/pwnbox.js';
+import { registerSherlocksCommands, loadSherlocks } from './commands/sherlocks.js';
+import { SherlocksProvider } from './views/sherlocksTree.js';
 import { AiService } from './services/ai.js';
 import { createLogger } from './utils/logger.js';
 
@@ -48,6 +50,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const startingPointProvider = new StartingPointProvider();
   const recentBoxesProvider = new RecentBoxesProvider();
   const enumProvider = new EnumerationProvider();
+  const sherlocksProvider = new SherlocksProvider();
 
   const savedBoxes = context.globalState.get<string[]>('htb.recentBoxes', []);
   recentBoxesProvider.update(savedBoxes);
@@ -58,6 +61,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     vscode.window.registerTreeDataProvider('htbCompanion.machines', machinesListProvider),
     vscode.window.registerTreeDataProvider('htbCompanion.recentBoxes', recentBoxesProvider),
     vscode.window.registerTreeDataProvider('htbCompanion.enumeration', enumProvider),
+    vscode.window.registerTreeDataProvider('htbCompanion.sherlocks', sherlocksProvider),
   );
 
   // ── Commands ──────────────────────────────────────────────────────────────
@@ -106,6 +110,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   registerWriteupCommands(context, commandHistory, enumProvider, logger);
   registerPwnboxCommands(context, apiClient, logger);
+  registerSherlocksCommands(context, apiClient, sherlocksProvider, logger);
 
   context.subscriptions.push(
     vscode.commands.registerCommand('htb.machines.loadMoreRetired', async () => {
@@ -152,6 +157,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         machineInfo?.authUserInRootOwns ?? false,
       );
     }
+
+    void loadSherlocks(apiClient, sherlocksProvider, logger);
   }
 
   logger.info('HTB Companion ready.');
