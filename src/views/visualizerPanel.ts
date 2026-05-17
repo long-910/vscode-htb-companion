@@ -106,6 +106,111 @@ function buildMermaid(
   return lines.join('\n');
 }
 
+// ── MITRE ATT&CK mapper ───────────────────────────────────────────────────────
+
+interface MitreTactic {
+  id: string;
+  name: string;
+  techniques: string[];
+  reasons: string[];
+}
+
+const PORT_TACTIC_MAP: Record<string, { tactics: string[]; technique: string }> = {
+  '21': { tactics: ['TA0001', 'TA0008'], technique: 'T1071.002 FTP' },
+  '22': { tactics: ['TA0001', 'TA0008'], technique: 'T1021.004 SSH' },
+  '23': { tactics: ['TA0008'], technique: 'T1021 Telnet' },
+  '25': { tactics: ['TA0043'], technique: 'T1595 SMTP banner grab' },
+  '80': { tactics: ['TA0043', 'TA0001'], technique: 'T1190 Web exploit / T1595 Recon' },
+  '443': { tactics: ['TA0043', 'TA0001'], technique: 'T1190 Web exploit / T1595 Recon' },
+  '445': { tactics: ['TA0001', 'TA0008', 'TA0006'], technique: 'T1021.002 SMB / T1187 NTLMv2' },
+  '1433': { tactics: ['TA0001'], technique: 'T1190 MSSQL exploit' },
+  '3306': { tactics: ['TA0001'], technique: 'T1190 MySQL exploit' },
+  '3389': { tactics: ['TA0008'], technique: 'T1021.001 RDP' },
+  '5985': { tactics: ['TA0008'], technique: 'T1021.006 WinRM' },
+  '8080': { tactics: ['TA0043', 'TA0001'], technique: 'T1190 Web exploit' },
+  '8443': { tactics: ['TA0043', 'TA0001'], technique: 'T1190 Web exploit' },
+};
+
+const TACTIC_META: Record<string, string> = {
+  TA0043: 'Reconnaissance',
+  TA0042: 'Resource Development',
+  TA0001: 'Initial Access',
+  TA0002: 'Execution',
+  TA0003: 'Persistence',
+  TA0004: 'Privilege Escalation',
+  TA0005: 'Defense Evasion',
+  TA0006: 'Credential Access',
+  TA0007: 'Discovery',
+  TA0008: 'Lateral Movement',
+  TA0009: 'Collection',
+  TA0010: 'Exfiltration',
+  TA0011: 'Command and Control',
+};
+
+function buildMitreMapping(findings: ReadonlyArray<EnumFinding>): MitreTactic[] {
+  const tacticMap = new Map<string, { techniques: Set<string>; reasons: Set<string> }>();
+
+  const ensure = (id: string) => {
+    if (!tacticMap.has(id)) {
+      tacticMap.set(id, { techniques: new Set(), reasons: new Set() });
+    }
+    return tacticMap.get(id)!;
+  };
+
+  for (const f of findings) {
+    if (f.type === 'port') {
+      const portNum = f.value.split('/')[0] ?? '';
+      const entry = PORT_TACTIC_MAP[portNum];
+      if (entry) {
+        for (const t of entry.tactics) {
+          ensure(t).techniques.add(entry.technique);
+          ensure(t).reasons.add(`Port ${f.value}`);
+        }
+      } else {
+        ensure('TA0043').techniques.add('T1595 Active Scanning');
+        ensure('TA0043').reasons.add(`Port ${f.value}`);
+      }
+    }
+
+    if (f.type === 'directory') {
+      ensure('TA0007').techniques.add('T1083 File & Directory Discovery');
+      ensure('TA0007').reasons.add('Web directories found');
+    }
+
+    if (f.type === 'subdomain') {
+      ensure('TA0043').techniques.add('T1596.001 DNS/Passive Recon');
+      ensure('TA0043').reasons.add('Subdomains enumerated');
+    }
+
+    if (f.type === 'user') {
+      ensure('TA0007').techniques.add('T1087 Account Discovery');
+      ensure('TA0007').reasons.add(`User: ${f.value}`);
+    }
+
+    if (f.type === 'credential') {
+      ensure('TA0006').techniques.add('T1110 Brute Force / T1552 Credentials');
+      ensure('TA0001').techniques.add('T1078 Valid Accounts');
+      ensure('TA0006').reasons.add(`Credential: ${f.value}`);
+      ensure('TA0001').reasons.add(`Credential: ${f.value}`);
+    }
+
+    if (f.type === 'cve') {
+      ensure('TA0001').techniques.add('T1190 Exploit Public-Facing Application');
+      ensure('TA0001').reasons.add(`CVE: ${f.value}`);
+    }
+  }
+
+  return [...tacticMap.entries()]
+    .filter(([id]) => id in TACTIC_META)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([id, { techniques, reasons }]) => ({
+      id,
+      name: TACTIC_META[id] ?? id,
+      techniques: [...techniques],
+      reasons: [...reasons].slice(0, 3),
+    }));
+}
+
 // ── HTML builder ──────────────────────────────────────────────────────────────
 
 function buildHtml(
@@ -144,9 +249,22 @@ function buildHtml(
   const noteRows = notes.map((n) => `<li>${n.value}</li>`).join('');
 
   const mermaid = buildMermaid(findings, targetIp, boxName);
+  const mitre = buildMitreMapping(findings);
 
   const section = (title: string, icon: string, content: string) =>
     content ? `<section><h2>${icon} ${title}</h2>${content}</section>` : '';
+
+  const mitreRows = mitre
+    .map(
+      (t) =>
+        `<tr>
+          <td><span class="tactic-id">${t.id}</span></td>
+          <td><strong>${t.name}</strong></td>
+          <td class="ver">${t.techniques.join('<br>')}</td>
+          <td class="ver muted">${t.reasons.join(', ')}</td>
+        </tr>`,
+    )
+    .join('');
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -169,6 +287,8 @@ function buildHtml(
   td { padding: 4px 6px; border-bottom: 1px solid #2a2a2a; vertical-align: top; }
   td:first-child { white-space: nowrap; }
   .ver { color: var(--muted); font-size: 11px; }
+  .tactic-id { background: #2a3a1a; color: var(--green); border-radius: 3px; padding: 1px 5px; font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .muted { color: var(--muted); }
   ul { list-style: none; padding: 0; }
   ul li { padding: 3px 0; border-bottom: 1px solid #2a2a2a; word-break: break-all; }
   ul li.cve { color: #ff6b6b; font-weight: bold; }
@@ -209,10 +329,23 @@ function buildHtml(
   ${section('Notes', '📝', notes.length > 0 ? `<ul>${noteRows}</ul>` : '')}
 </div>
 
+${
+  mitre.length > 0
+    ? `<div class="mermaid-section">
+  <h2>🛡 MITRE ATT&amp;CK Mapping</h2>
+  <table>
+    <thead><tr><th>Tactic ID</th><th>Tactic</th><th>Techniques</th><th>Evidence</th></tr></thead>
+    <tbody>${mitreRows}</tbody>
+  </table>
+  <p style="color:var(--muted);font-size:11px;margin-top:6px;">Inferred from findings — verify manually before reporting.</p>
+</div>`
+    : ''
+}
+
 <div class="mermaid-section">
   <h2>📋 Mermaid Syntax <button onclick="copyMermaid()">Copy</button></h2>
   <pre id="mermaid-src">${mermaid.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
-  <p style="color:var(--muted);font-size:11px;margin-top:6px;">Paste into <a href="#" style="color:#9fef00">Mermaid Live Editor</a> or Obsidian to render the graph.</p>
+  <p style="color:var(--muted);font-size:11px;margin-top:6px;">Paste into Mermaid Live Editor or Obsidian to render the graph.</p>
 </div>
 
 <script>
