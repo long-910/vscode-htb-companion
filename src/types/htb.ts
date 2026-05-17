@@ -45,3 +45,11 @@ export interface HtbFlagSubmitResult {
   success: boolean;
   ownType?: 'user' | 'root';
 }
+
+export interface HtbPwnbox {
+  hostname: string;
+  username: string;
+  password?: string;
+  status: 'running' | 'stopped' | 'unknown';
+  location?: string;
+}

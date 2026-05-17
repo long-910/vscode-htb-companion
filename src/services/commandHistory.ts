@@ -1,9 +1,13 @@
 import * as vscode from 'vscode';
 import { appendFile, readFile, mkdir } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import type { CommandLogEntry } from '../types/findings.js';
 import { maskSensitive } from '../utils/mask.js';
 import type { Logger } from '../utils/logger.js';
+
+const execFileAsync = promisify(execFile);
 
 const MAX_OUTPUT_BYTES = 10_240;
 const MAX_LOG_ENTRIES = 500;
@@ -82,6 +86,46 @@ export class CommandHistoryService {
     return this._entries.slice(-n);
   }
 
+  private async maybeScreenshot(boxDir: string, section: string): Promise<string | undefined> {
+    const cfg = vscode.workspace.getConfiguration('htb');
+    if (!cfg.get<boolean>('writeup.captureScreenshots', true)) {
+      return undefined;
+    }
+
+    const ts = new Date().toISOString().replace(/[:.]/g, '-');
+    const screenshotsDir = join(boxDir, 'screenshots');
+    const filename = `${ts}-${section}.png`;
+    const outPath = join(screenshotsDir, filename);
+
+    try {
+      await mkdir(screenshotsDir, { recursive: true });
+
+      const platform = process.platform;
+      if (platform === 'darwin') {
+        // -i: interactive selection mode (user drags region)
+        await execFileAsync('screencapture', ['-i', outPath]);
+      } else if (platform === 'linux') {
+        // Try scrot first, fall back to gnome-screenshot
+        try {
+          await execFileAsync('scrot', ['-s', outPath]);
+        } catch {
+          await execFileAsync('gnome-screenshot', ['-a', '-f', outPath]);
+        }
+      } else if (platform === 'win32') {
+        const ps = `Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait('%{PRTSC}'); Start-Sleep -m 200; $img=[System.Windows.Forms.Clipboard]::GetImage(); $img.Save('${outPath.replace(/\\/g, '\\\\')}')`;
+        await execFileAsync('powershell', ['-NonInteractive', '-Command', ps]);
+      } else {
+        return undefined;
+      }
+
+      this.logger.info(`Screenshot saved: ${outPath}`);
+      return filename;
+    } catch (e) {
+      this.logger.warn(`Screenshot failed: ${e instanceof Error ? e.message : String(e)}`);
+      return undefined;
+    }
+  }
+
   registerCaptureCommand(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
       vscode.commands.registerCommand('htb.terminal.captureCommand', async () => {
@@ -116,8 +160,14 @@ export class CommandHistoryService {
         const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? '';
         await this.capture(command, cwd, undefined, undefined, section?.label);
 
+        const screenshotPath = await this.maybeScreenshot(
+          this.currentBoxDir ?? cwd,
+          section?.label ?? 'other',
+        );
+
+        const screenshotNote = screenshotPath ? ` 📸 ${screenshotPath}` : '';
         void vscode.window.showInformationMessage(
-          `Captured: ${command.slice(0, 60)}${command.length > 60 ? '…' : ''} [${section?.label ?? 'other'}]`,
+          `Captured: ${command.slice(0, 60)}${command.length > 60 ? '…' : ''} [${section?.label ?? 'other'}]${screenshotNote}`,
         );
         this.logger.info(`Captured command for writeup: ${command}`);
       }),
