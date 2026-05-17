@@ -2,12 +2,13 @@
   "name": "vscode-htb-companion",
   "displayName": "HTB Companion",
   "description": "Hack The Box integration for VS Code — manage machines, organize notes, track flags, and get AI-assisted hints without leaving your editor.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "publisher": "long-kudo",
   "license": "MIT",
   "engines": {
     "vscode": "^1.95.0"
   },
+  "icon": "images/icon.png",
   "categories": [
     "Other",
     "Education"
